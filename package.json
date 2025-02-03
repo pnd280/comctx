@@ -1,0 +1,14 @@
+{
+  "name": "comctx",
+  "version": "1.0.0",
+  "description": "",
+  "main": "core/dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build:core": "pnpm --filter core build",
+    "dev:extension": "pnpm --filter examples/extension dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

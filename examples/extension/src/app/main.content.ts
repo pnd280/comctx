@@ -3,23 +3,20 @@ import { importMath } from '../shared'
 export default defineContentScript({
   matches: ['*://*.example.com/*'],
   world: 'MAIN',
-  main() {
+  async main() {
     setTimeout(() => {
-      console.log('Hello main.')
       const math = importMath()
-
-      // 调用远程方法
-      math.add(2, 3).then((result) => {
-        console.log('加法结果:', result) // 5
+      math.foo.bar.baz().then((result) => {
+        console.log('deep baz:', result) // baz
       })
 
-      // 使用回调函数
+      math.add(2, 3).then((result) => {
+        console.log('add:', result) // 5
+      })
 
-      // 构造函数调用示例
-      // const mathInstance = new math.AdvancedMath(10)
-      // mathInstance.multiply(5).then((result) => {
-      //   console.log('乘法结果:', result) // 50
-      // })
+      math.callbackAdd(2, 3, (result) => {
+        console.log('add callback:', result) // 5
+      })
     }, 1000)
   }
 })

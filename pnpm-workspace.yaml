@@ -1,4 +1,4 @@
 packages:
   - 'core'
   - '__tests__'
-  - 'examples/**'
+  - 'examples/*'
