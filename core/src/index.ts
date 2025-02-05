@@ -1,6 +1,13 @@
 import uuid from '@/utils/uuid'
+import setIntervalImmediate from '@/utils/setIntervalImmediate'
 
 type MaybePromise<T> = T | Promise<T>
+
+export interface Options {
+  backup?: boolean
+  waitProvide?: boolean
+  waitInterval?: number
+}
 
 export interface Message {
   type: 'apply' | 'ping' | 'pong'
@@ -24,9 +31,9 @@ export interface Adapter {
   sendMessage: SendMessage
 }
 
-const waitProvide = async (adapter: Adapter) => {
-  const offMessage = await new Promise<OffMessage | void>((resolve, reject) => {
-    const timer = setInterval(async () => {
+const waitProvide = async (adapter: Adapter, interval: number = 0) => {
+  await new Promise<void>((resolve, reject) => {
+    const clearIntervalImmediate = setIntervalImmediate(async () => {
       try {
         const id = uuid()
         adapter.sendMessage({
@@ -40,17 +47,16 @@ const waitProvide = async (adapter: Adapter) => {
           if (message.sender !== 'provide') return
           if (message.type !== 'pong') return
           if (message.id !== id) return
-          clearInterval(timer)
+          clearIntervalImmediate()
+          resolve()
           offMessage?.()
-          resolve(offMessage)
         })
       } catch (error) {
-        clearInterval(timer)
+        clearIntervalImmediate()
         reject(error)
       }
-    })
+    }, interval)
   })
-  offMessage?.()
 }
 
 const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapter) => {
@@ -102,16 +108,16 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
   return target
 }
 
-const createInject = <T extends Record<string, any>>(source: T | null, adapter: Adapter) => {
+const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter, options: Options) => {
   const createProxy = (target: T, path: string[]) => {
     const proxy = new Proxy<T>(target, {
       get(target, key: string) {
-        return createProxy(source ? target[key] : ((() => {}) as unknown as T), [...path, key] as string[])
+        return createProxy(options.backup ? target[key] : ((() => {}) as unknown as T), [...path, key] as string[])
       },
       apply(_target, _thisArg, args) {
         return new Promise<Message>(async (resolve, reject) => {
           try {
-            await waitProvide(adapter)
+            options.waitProvide && (await waitProvide(adapter, options.waitInterval))
 
             const callbackIds: string[] = []
             const mapArgs = args.map((arg) => {
@@ -129,6 +135,7 @@ const createInject = <T extends Record<string, any>>(source: T | null, adapter: 
                 return arg
               }
             })
+
             const message: Message = {
               type: 'apply',
               id: uuid(),
@@ -142,8 +149,8 @@ const createInject = <T extends Record<string, any>>(source: T | null, adapter: 
               if (_message.sender !== 'provide') return
               if (_message.type !== 'apply') return
               if (_message.id !== message.id) return
-              offMessage?.()
               _message.error ? reject(new Error(_message.error)) : resolve(_message.data)
+              offMessage?.()
             })
             adapter.sendMessage(message)
           } catch (error) {
@@ -154,7 +161,7 @@ const createInject = <T extends Record<string, any>>(source: T | null, adapter: 
     })
     return proxy
   }
-  return createProxy(source ?? ((() => {}) as unknown as T), [])
+  return createProxy(source, [])
 }
 
 const provideProxy = <T extends Record<string, any>>(context: () => T) => {
@@ -162,13 +169,17 @@ const provideProxy = <T extends Record<string, any>>(context: () => T) => {
   return (adapter: Adapter) => (target ??= createProvide(context(), adapter))
 }
 
-const injectProxy = <T extends Record<string, any>>(context: (() => T) | null) => {
+const injectProxy = <T extends Record<string, any>>(context: () => T, options: Options) => {
   let target: T
-  return (adapter: Adapter) => (target ??= createInject(context?.() ?? null, adapter))
+  return (adapter: Adapter) =>
+    (target ??= createInject(options.backup ? context() : ((() => {}) as unknown as T), adapter, options))
 }
 
-const defineProxy = <T extends Record<string, any>>(context: () => T, backup: boolean = false) => {
-  return [provideProxy(context), injectProxy(backup ? context : null)] as const
+export const defineProxy = <T extends Record<string, any>>(context: () => T, options?: Options) => {
+  return [
+    provideProxy(context),
+    injectProxy(context, { backup: false, waitProvide: true, waitInterval: 300, ...options })
+  ] as const
 }
 
 export default defineProxy

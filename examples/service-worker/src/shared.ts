@@ -1,6 +1,6 @@
 import comctx from 'comctx'
 
-// Proxy object that will run in the background script
+// Proxy object that will run in the Service Worker
 class Counter {
   value = 0
 
@@ -30,4 +30,6 @@ class Counter {
   }
 }
 
-export const [provideCounter, injectCounter] = comctx(() => new Counter())
+export const [provideCounter, injectCounter] = comctx(() => new Counter(), {
+  waitProvide: true
+})

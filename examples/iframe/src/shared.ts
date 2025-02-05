@@ -30,4 +30,6 @@ class Counter {
   }
 }
 
-export const [provideCounter, injectCounter] = comctx(() => new Counter())
+export const [provideCounter, injectCounter] = comctx(() => new Counter(), {
+  waitProvide: true
+})

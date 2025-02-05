@@ -36,7 +36,7 @@ export default defineContentScript({
               <button id="increment" type="button">+</button>
             </div>
             <div class="card">
-              <h4 id="background-value">background value: ${initValue} </h4>
+              <h4 id="background-value">Background Value: ${initValue} </h4>
             </div>
           </div>`)
 
@@ -50,7 +50,7 @@ export default defineContentScript({
 
         counter.onChange((value) => {
           app.querySelector<HTMLDivElement>('#value')!.textContent = value.toString()
-          app.querySelector<HTMLDivElement>('#background-value')!.textContent = `background value: ${value}`
+          app.querySelector<HTMLDivElement>('#background-value')!.textContent = `Background Value: ${value}`
         })
         container.append(app)
       }
