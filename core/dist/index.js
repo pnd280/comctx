@@ -3,23 +3,56 @@ var uuid = () => [...Array(4)].map(() => Math.floor(Math.random() * Number.MAX_S
 var uuid_default = uuid;
 
 // src/index.ts
-var createExport = (target, adapter) => {
-  adapter.onMessage(async (_message) => {
-    if (_message.sender !== "import") return;
-    const message = {
-      ..._message,
-      sender: "export"
-    };
-    switch (_message.type) {
+var waitProvide = async (adapter) => {
+  const offMessage = await new Promise((resolve, reject) => {
+    const timer = setInterval(async () => {
+      try {
+        const id = uuid_default();
+        adapter.sendMessage({
+          type: "ping",
+          id,
+          path: [],
+          sender: "inject",
+          args: []
+        });
+        const offMessage2 = await adapter.onMessage((message) => {
+          if (message.sender !== "provide") return;
+          if (message.type !== "pong") return;
+          if (message.id !== id) return;
+          clearInterval(timer);
+          offMessage2?.();
+          resolve(offMessage2);
+        });
+      } catch (error) {
+        clearInterval(timer);
+        reject(error);
+      }
+    });
+  });
+  offMessage?.();
+};
+var createProvide = (target, adapter) => {
+  adapter.onMessage(async (message) => {
+    if (message.sender !== "inject") return;
+    switch (message.type) {
+      case "ping": {
+        adapter.sendMessage({
+          ...message,
+          type: "pong",
+          sender: "provide"
+        });
+        break;
+      }
       case "apply": {
-        const mapArgs = _message.args.map((arg) => {
-          if (_message.callbackIds?.includes(arg)) {
+        const mapArgs = message.args.map((arg) => {
+          if (message.callbackIds?.includes(arg)) {
             return (...args) => {
               adapter.sendMessage({
-                ..._message,
+                ...message,
                 id: arg,
                 data: args,
-                sender: "export"
+                type: "apply",
+                sender: "provide"
               });
             };
           } else {
@@ -27,36 +60,43 @@ var createExport = (target, adapter) => {
           }
         });
         try {
-          message.data = await _message.path.reduce((acc, key) => acc[key], target).apply(
+          message.data = await message.path.reduce((acc, key) => acc[key], target).apply(
             target,
             mapArgs
           );
         } catch (error) {
           message.error = error.message;
         }
+        adapter.sendMessage({
+          ...message,
+          type: "apply",
+          sender: "provide"
+        });
         break;
       }
     }
-    adapter.sendMessage(message);
   });
+  return target;
 };
-var createImport = (context, adapter) => {
+var createInject = (source, adapter) => {
   const createProxy = (target, path) => {
     const proxy = new Proxy(target, {
-      get(_target, key) {
-        return createProxy(() => {
+      get(target2, key) {
+        return createProxy(source ? target2[key] : () => {
         }, [...path, key]);
       },
       apply(_target, _thisArg, args) {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
           try {
+            await waitProvide(adapter);
             const callbackIds = [];
             const mapArgs = args.map((arg) => {
               if (typeof arg === "function") {
                 const callbackId = uuid_default();
                 callbackIds.push(callbackId);
                 adapter.onMessage((_message) => {
-                  if (_message.sender !== "export") return;
+                  if (_message.sender !== "provide") return;
+                  if (_message.type !== "apply") return;
                   if (_message.id !== callbackId) return;
                   arg(..._message.data);
                 });
@@ -69,13 +109,15 @@ var createImport = (context, adapter) => {
               type: "apply",
               id: uuid_default(),
               path,
-              sender: "import",
+              sender: "inject",
               callbackIds,
               args: mapArgs
             };
-            adapter.onMessage((_message) => {
-              if (_message.sender !== "export") return;
+            const offMessage = await adapter.onMessage((_message) => {
+              if (_message.sender !== "provide") return;
+              if (_message.type !== "apply") return;
               if (_message.id !== message.id) return;
+              offMessage?.();
               _message.error ? reject(new Error(_message.error)) : resolve(_message.data);
             });
             adapter.sendMessage(message);
@@ -87,17 +129,19 @@ var createImport = (context, adapter) => {
     });
     return proxy;
   };
-  return createProxy(context, []);
+  return createProxy(source ?? (() => {
+  }), []);
 };
-var exportProxy = (context, adapter) => (...args) => {
-  return createExport(context(...args), adapter);
+var provideProxy = (context) => {
+  let target;
+  return (adapter) => target ??= createProvide(context(), adapter);
 };
-var importProxy = (_, adapter) => () => {
-  return createImport(() => {
-  }, adapter);
+var injectProxy = (context) => {
+  let target;
+  return (adapter) => target ??= createInject(context?.() ?? null, adapter);
 };
-var defineProxy = (context, adapter) => {
-  return [exportProxy(context, adapter), importProxy(context, adapter)];
+var defineProxy = (context, backup = false) => {
+  return [provideProxy(context), injectProxy(backup ? context : null)];
 };
 var index_default = defineProxy;
 export {

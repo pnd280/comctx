@@ -1,40 +1,81 @@
 import uuid from '@/utils/uuid'
 
+type MaybePromise<T> = T | Promise<T>
+
 export interface Message {
-  type: 'apply'
+  type: 'apply' | 'ping' | 'pong'
   id: string
   path: string[]
-  sender: 'import' | 'export'
+  sender: 'provide' | 'inject'
   callbackIds?: string[]
   args: any[]
   error?: string
   data?: any
 }
 
+export type OffMessage = () => MaybePromise<void>
+
+export type OnMessage = (callback: (message: Message) => void) => MaybePromise<OffMessage | void>
+
+export type SendMessage = (message: Message) => MaybePromise<void>
+
 export interface Adapter {
-  onMessage: (callback: (message: Message) => void) => void
-  sendMessage: (message: Message) => void
+  onMessage: OnMessage
+  sendMessage: SendMessage
 }
 
-const createExport = <T extends Record<string, any>>(target: T, adapter: Adapter) => {
-  adapter.onMessage(async (_message) => {
-    if (_message.sender !== 'import') return
+const waitProvide = async (adapter: Adapter) => {
+  const offMessage = await new Promise<OffMessage | void>((resolve, reject) => {
+    const timer = setInterval(async () => {
+      try {
+        const id = uuid()
+        adapter.sendMessage({
+          type: 'ping',
+          id,
+          path: [],
+          sender: 'inject',
+          args: []
+        })
+        const offMessage = await adapter.onMessage((message) => {
+          if (message.sender !== 'provide') return
+          if (message.type !== 'pong') return
+          if (message.id !== id) return
+          clearInterval(timer)
+          offMessage?.()
+          resolve(offMessage)
+        })
+      } catch (error) {
+        clearInterval(timer)
+        reject(error)
+      }
+    })
+  })
+  offMessage?.()
+}
 
-    const message: Message = {
-      ..._message,
-      sender: 'export'
-    }
+const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapter) => {
+  adapter.onMessage(async (message) => {
+    if (message.sender !== 'inject') return
 
-    switch (_message.type) {
+    switch (message.type) {
+      case 'ping': {
+        adapter.sendMessage({
+          ...message,
+          type: 'pong',
+          sender: 'provide'
+        })
+        break
+      }
       case 'apply': {
-        const mapArgs = _message.args.map((arg) => {
-          if (_message.callbackIds?.includes(arg)) {
+        const mapArgs = message.args.map((arg) => {
+          if (message.callbackIds?.includes(arg)) {
             return (...args: any[]) => {
               adapter.sendMessage({
-                ..._message,
+                ...message,
                 id: arg,
                 data: args,
-                sender: 'export'
+                type: 'apply',
+                sender: 'provide'
               })
             }
           } else {
@@ -42,38 +83,44 @@ const createExport = <T extends Record<string, any>>(target: T, adapter: Adapter
           }
         })
         try {
-          message.data = await (_message.path.reduce((acc, key) => acc[key], target) as unknown as Function).apply(
+          message.data = await (message.path.reduce((acc, key) => acc[key], target) as unknown as Function).apply(
             target,
             mapArgs
           )
         } catch (error) {
           message.error = (error as Error).message
         }
+        adapter.sendMessage({
+          ...message,
+          type: 'apply',
+          sender: 'provide'
+        })
         break
       }
     }
-
-    adapter.sendMessage(message)
   })
+  return target
 }
 
-const createImport = <T extends Record<string, any>>(context: T, adapter: Adapter) => {
+const createInject = <T extends Record<string, any>>(source: T | null, adapter: Adapter) => {
   const createProxy = (target: T, path: string[]) => {
     const proxy = new Proxy<T>(target, {
-      get(_target, key: string) {
-        return createProxy((() => {}) as unknown as T, [...path, key] as string[])
+      get(target, key: string) {
+        return createProxy(source ? target[key] : ((() => {}) as unknown as T), [...path, key] as string[])
       },
       apply(_target, _thisArg, args) {
-        return new Promise<Message>((resolve, reject) => {
+        return new Promise<Message>(async (resolve, reject) => {
           try {
-            const callbackIds: string[] = []
+            await waitProvide(adapter)
 
+            const callbackIds: string[] = []
             const mapArgs = args.map((arg) => {
               if (typeof arg === 'function') {
                 const callbackId = uuid()
                 callbackIds.push(callbackId)
                 adapter.onMessage((_message) => {
-                  if (_message.sender !== 'export') return
+                  if (_message.sender !== 'provide') return
+                  if (_message.type !== 'apply') return
                   if (_message.id !== callbackId) return
                   arg(..._message.data)
                 })
@@ -86,15 +133,16 @@ const createImport = <T extends Record<string, any>>(context: T, adapter: Adapte
               type: 'apply',
               id: uuid(),
               path,
-              sender: 'import',
+              sender: 'inject',
               callbackIds,
               args: mapArgs
             }
 
-            adapter.onMessage((_message) => {
-              if (_message.sender !== 'export') return
+            const offMessage = await adapter.onMessage((_message) => {
+              if (_message.sender !== 'provide') return
+              if (_message.type !== 'apply') return
               if (_message.id !== message.id) return
-
+              offMessage?.()
               _message.error ? reject(new Error(_message.error)) : resolve(_message.data)
             })
             adapter.sendMessage(message)
@@ -106,23 +154,21 @@ const createImport = <T extends Record<string, any>>(context: T, adapter: Adapte
     })
     return proxy
   }
-  return createProxy(context, [])
+  return createProxy(source ?? ((() => {}) as unknown as T), [])
 }
 
-const exportProxy =
-  <T extends Record<string, any>>(context: (...args: any[]) => T, adapter: Adapter) =>
-  <A>(...args: A[]) => {
-    return createExport(context(...args), adapter)
-  }
+const provideProxy = <T extends Record<string, any>>(context: () => T) => {
+  let target: T
+  return (adapter: Adapter) => (target ??= createProvide(context(), adapter))
+}
 
-const importProxy =
-  <T extends Record<string, any>>(_: (...args: any[]) => T, adapter: Adapter) =>
-  () => {
-    return createImport((() => {}) as unknown as T, adapter)
-  }
+const injectProxy = <T extends Record<string, any>>(context: (() => T) | null) => {
+  let target: T
+  return (adapter: Adapter) => (target ??= createInject(context?.() ?? null, adapter))
+}
 
-const defineProxy = <T extends Record<string, any>>(context: () => T, adapter: Adapter) => {
-  return [exportProxy(context, adapter), importProxy(context, adapter)] as const
+const defineProxy = <T extends Record<string, any>>(context: () => T, backup: boolean = false) => {
+  return [provideProxy(context), injectProxy(backup ? context : null)] as const
 }
 
 export default defineProxy

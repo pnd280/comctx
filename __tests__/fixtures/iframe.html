@@ -1,0 +1,15 @@
+<!-- tests/child.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- 假设 shared.ts 已经打包为 shared.bundle.js，且可以全局访问 injectCounter 与 provideCounter -->
+    <script src="/shared.bundle.js"></script>
+    <script>
+      // 上下文 A：作为 export 端，调用 provideCounter 注册代理
+      provideCounter()
+    </script>
+  </head>
+  <body>
+    子 iframe（export 端）
+  </body>
+</html>

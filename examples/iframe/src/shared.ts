@@ -1,5 +1,6 @@
 import comctx from 'comctx'
 
+// Proxy object that will run in the iFrame
 class Counter {
   value = 0
 
