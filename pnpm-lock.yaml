@@ -54,7 +54,7 @@ importers:
         specifier: ^8.23.0
         version: 8.23.0(eslint@9.19.0(jiti@2.4.2))(typescript@5.7.3)
 
-  examples/extension:
+  examples/browser-extensions:
     dependencies:
       '@webext-core/messaging':
         specifier: ^2.2.0

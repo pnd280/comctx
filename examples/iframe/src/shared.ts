@@ -1,6 +1,6 @@
-import comctx from 'comctx'
+import { defineProxy } from 'comctx'
 
-// Proxy object that will run in the iFrame
+// Proxy object that will run in the iframe
 class Counter {
   value = 0
 
@@ -9,9 +9,9 @@ class Counter {
   }
 
   async onChange(callback: (value: number) => void) {
-    let oldValue = await this.getValue()
-    setInterval(async () => {
-      const newValue = await this.getValue()
+    let oldValue = this.value
+    setInterval(() => {
+      const newValue = this.value
       if (oldValue !== newValue) {
         callback(this.value)
         oldValue = newValue
@@ -30,6 +30,4 @@ class Counter {
   }
 }
 
-export const [provideCounter, injectCounter] = comctx(() => new Counter(), {
-  waitProvide: true
-})
+export const [provideCounter, injectCounter] = defineProxy(() => new Counter())

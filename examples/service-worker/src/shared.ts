@@ -1,4 +1,4 @@
-import comctx from 'comctx'
+import { defineProxy } from 'comctx'
 
 // Proxy object that will run in the Service Worker
 class Counter {
@@ -10,7 +10,7 @@ class Counter {
 
   async onChange(callback: (value: number) => void) {
     let oldValue = this.value
-    setInterval(async () => {
+    setInterval(() => {
       const newValue = this.value
       if (oldValue !== newValue) {
         callback(this.value)
@@ -30,4 +30,4 @@ class Counter {
   }
 }
 
-export const [provideCounter, injectCounter] = comctx(() => new Counter())
+export const [provideCounter, injectCounter] = defineProxy(() => new Counter())
