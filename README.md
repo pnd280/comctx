@@ -2,7 +2,7 @@
 
 Easily interoperate across different contexts.
 
-[![GitHub License](https://img.shields.io/github/license/molvqingtai/comctx)](https://github.com/molvqingtai/comctx/blob/master/LICENSE) [![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/cpaedhbidlpnbdfegakhiamfpndhjpgf)](https://chromewebstore.google.com/detail/comctx/cpaedhbidlpnbdfegakhiamfpndhjpgf) [![GitHub Release](https://img.shields.io/github/v/release/molvqingtai/comctx)](https://github.com/molvqingtai/comctx/releases)
+[![version](https://img.shields.io/github/v/release/molvqingtai/comctx)](https://www.npmjs.com/package/comctx) [![workflow](https://github.com/molvqingtai/comctx/actions/workflows/ci.yml/badge.svg)](https://github.com/molvqingtai/comctx/actions) [![download](https://img.shields.io/npm/dt/comctx)](https://www.npmjs.com/package/comctx)
 
 ### License
 
