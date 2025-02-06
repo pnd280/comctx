@@ -10,7 +10,6 @@ test('父页面 injectCounter 与子 iframe provideCounter 通信测试', async 
   })
   expect(resultBaz).toBe('baz')
 
-  // 2. 测试普通方法 math.add(2, 3)
   const resultAdd = await parentPage.evaluate(async () => {
     return await window.injectCounter.add(2, 3)
   })

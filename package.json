@@ -8,7 +8,17 @@
     "build:core": "pnpm --filter core build",
     "dev:extension": "pnpm --filter examples/extension dev"
   },
-  "keywords": [],
+  "keywords": [
+    "postMessage",
+    "BroadcastChannel",
+    "MessageChannel",
+    "MessagePort",
+    "ServiceWorker",
+    "WebWorker",
+    "extension",
+    "rpc",
+    "comlink"
+  ],
   "author": "",
   "license": "ISC"
 }

@@ -9,9 +9,9 @@ class Counter {
   }
 
   async onChange(callback: (value: number) => void) {
-    let oldValue = await this.getValue()
+    let oldValue = this.value
     setInterval(async () => {
-      const newValue = await this.getValue()
+      const newValue = this.value
       if (oldValue !== newValue) {
         callback(this.value)
         oldValue = newValue
@@ -30,6 +30,4 @@ class Counter {
   }
 }
 
-export const [provideCounter, injectCounter] = comctx(() => new Counter(), {
-  waitProvide: true
-})
+export const [provideCounter, injectCounter] = comctx(() => new Counter())

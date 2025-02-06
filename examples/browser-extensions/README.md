@@ -1,4 +1,4 @@
-# service-worker-example
+# browser-extensions-example
 
 **Run**
 

@@ -1,3 +1,8 @@
-# WXT + React
+# iframe-example
 
-This template should help get you started developing with React in WXT.
+**Run**
+
+```
+pnpm install
+pnpm dev
+```
