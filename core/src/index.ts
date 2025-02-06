@@ -10,7 +10,7 @@ export interface Options {
 }
 
 export interface Message {
-  type: 'apply' | 'ping' | 'pong'
+  type: 'apply' | 'callback' | 'ping' | 'pong'
   id: string
   path: string[]
   sender: 'provide' | 'inject'
@@ -18,6 +18,7 @@ export interface Message {
   args: any[]
   error?: string
   data?: any
+  timeStamp: number
 }
 
 export type OffMessage = () => MaybePromise<void>
@@ -41,7 +42,8 @@ const waitProvide = async (adapter: Adapter, interval: number = 0) => {
           id,
           path: [],
           sender: 'inject',
-          args: []
+          args: [],
+          timeStamp: Date.now()
         })
         const offMessage = await adapter.onMessage((message) => {
           if (message.sender !== 'provide') return
@@ -68,7 +70,8 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
         adapter.sendMessage({
           ...message,
           type: 'pong',
-          sender: 'provide'
+          sender: 'provide',
+          timeStamp: Date.now()
         })
         break
       }
@@ -80,8 +83,9 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
                 ...message,
                 id: arg,
                 data: args,
-                type: 'apply',
-                sender: 'provide'
+                type: 'callback',
+                sender: 'provide',
+                timeStamp: Date.now()
               })
             }
           } else {
@@ -99,7 +103,8 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
         adapter.sendMessage({
           ...message,
           type: 'apply',
-          sender: 'provide'
+          sender: 'provide',
+          timeStamp: Date.now()
         })
         break
       }
@@ -126,7 +131,7 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
                 callbackIds.push(callbackId)
                 adapter.onMessage((_message) => {
                   if (_message.sender !== 'provide') return
-                  if (_message.type !== 'apply') return
+                  if (_message.type !== 'callback') return
                   if (_message.id !== callbackId) return
                   arg(..._message.data)
                 })
@@ -136,23 +141,25 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
               }
             })
 
-            const message: Message = {
-              type: 'apply',
-              id: uuid(),
-              path,
-              sender: 'inject',
-              callbackIds,
-              args: mapArgs
-            }
+            const id = uuid()
 
             const offMessage = await adapter.onMessage((_message) => {
               if (_message.sender !== 'provide') return
               if (_message.type !== 'apply') return
-              if (_message.id !== message.id) return
+              if (_message.id !== id) return
               _message.error ? reject(new Error(_message.error)) : resolve(_message.data)
               offMessage?.()
             })
-            adapter.sendMessage(message)
+
+            adapter.sendMessage({
+              type: 'apply',
+              id,
+              path,
+              sender: 'inject',
+              callbackIds,
+              args: mapArgs,
+              timeStamp: Date.now()
+            })
           } catch (error) {
             reject(error)
           }

@@ -8,10 +8,15 @@ export default class InjectAdapter implements Adapter {
     this.workbox.register()
   }
   sendMessage(message: Message) {
+    console.log('send', message)
+
     this.workbox.messageSW(message)
   }
   onMessage(callback: (message: Message) => void) {
-    const handler = (event: WorkboxMessageEvent) => callback(event.data)
+    const handler = (event: WorkboxMessageEvent) => {
+      console.log('on', event.data)
+      callback(event.data)
+    }
     this.workbox.addEventListener('message', handler)
     return () => this.workbox.removeEventListener('message', handler)
   }

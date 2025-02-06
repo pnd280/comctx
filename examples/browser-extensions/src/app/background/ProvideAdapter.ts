@@ -1,4 +1,4 @@
-import { browser } from 'wxt/browser'
+import { browser, Runtime } from 'wxt/browser'
 import { Adapter, Message } from 'comctx'
 
 export default class ProvideAdapter implements Adapter {
@@ -7,8 +7,8 @@ export default class ProvideAdapter implements Adapter {
     tabs.map((tab) => browser.tabs.sendMessage(tab.id!, message))
   }
 
-  onMessage(callback: (message: any) => void) {
-    const handler = (message: any, _sender: any, sendResponse: any): true => {
+  onMessage(callback: (message: Message) => void) {
+    const handler = (message: any, _sender: Runtime.MessageSender, sendResponse: any): true => {
       callback(message)
       sendResponse()
       return true
