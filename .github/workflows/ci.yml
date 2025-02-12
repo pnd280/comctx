@@ -29,9 +29,8 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
-
-  build:
-    needs: setup
+  linter:
+    needs: [setup]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,26 +44,11 @@ jobs:
         if: needs.setup.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run build
-
-  linter:
-    needs: [setup, build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - uses: pnpm/action-setup@v4
-        with:
-          version: latest
-      - name: Restore dependencies
-        if: needs.setup.outputs.cache-hit != 'true'
-        run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint
       - run: pnpm run check
 
   tests:
-    needs: [setup, build]
+    needs: [setup]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,4 +61,5 @@ jobs:
       - name: Restore dependencies
         if: needs.setup.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm run build
       - run: pnpm run test
