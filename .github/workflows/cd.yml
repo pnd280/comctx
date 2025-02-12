@@ -59,7 +59,7 @@ jobs:
           version: latest
       - name: Restore dependencies
         if: needs.setup.outputs.cache-hit != 'true'
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - run: pnpm run test
   release:
@@ -77,7 +77,7 @@ jobs:
           version: latest
       - name: Restore dependencies
         if: needs.setup.outputs.cache-hit != 'true'
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - run: pnpm semantic-release
         env:
