@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "pnpm --filter iframe-example build && vitest",
+    "test": "vitest",
     "lint": "eslint --fix --cache",
     "check": "tsc --noEmit"
   },
