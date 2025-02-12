@@ -38,15 +38,15 @@ export const [provideCounter, injectCounter] = defineProxy(() => new Counter(),{
 
 // provide end, typically for service-workers, background, etc.
 const originCounter = provideCounter({
-    onMessage(message){},
-    sendMessage(message){}
+  onMessage(message){},
+  sendMessage(message){}
 })
 originCounter.onChange((data)=>{})
 
 // inject end, typically for the main page, content-script, etc.
 const proxyCounter = provideCounter({
-    onMessage(message){},
-    sendMessage(message){}
+  onMessage(message){},
+  sendMessage(message){}
 })
 proxyCounter.increment()
 ```
@@ -62,6 +62,12 @@ proxyCounter.increment()
  
 
 ## Examples
+
+* [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
+* [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
+* [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
+
+
 
 **shared.ts**
 
