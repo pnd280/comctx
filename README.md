@@ -1,81 +1,38 @@
 # Comctx
 
-Easily interoperate across different contexts.
+Cross-context RPC solution with type safety and flexible adapters.
 
-[![version](https://img.shields.io/github/v/release/molvqingtai/comctx)](https://www.npmjs.com/package/comctx) [![workflow](https://github.com/molvqingtai/comctx/actions/workflows/ci.yml/badge.svg)](https://github.com/molvqingtai/comctx/actions) [![download](https://img.shields.io/npm/dt/comctx)](https://www.npmjs.com/package/comctx)
+[![version](https://img.shields.io/github/v/release/molvqingtai/comctx)](https://www.npmjs.com/package/comctx) [![workflow](https://github.com/molvqingtai/comctx/actions/workflows/ci.yml/badge.svg)](https://github.com/molvqingtai/comctx/actions) [![download](https://img.shields.io/npm/dt/comctx)](https://www.npmjs.com/package/comctx)![npm package minimized gzipped size](https://img.shields.io/bundlejs/size/comctx)
 
 ```shell
 $ pnpm install comctx
 ```
 
-## Introduction
+## ✨Introduction
 
 [Comctx](https://github.com/molvqingtai/comctx) shares the same goal as [Comlink](https://github.com/GoogleChromeLabs/comlink), but it is not reinventing the wheel. Since [Comlink](https://github.com/GoogleChromeLabs/comlink) relies on [MessagePort](https://developer.mozilla.org/en-US/docs/Web/API/MessagePort), which is not supported in all environments, this project implements a more flexible RPC approach that can more easily and effectively adapt to different runtime environments.
 
-## Setup
+## 💡Features
+
+- **Environment Agnostic** - Works across Service Workers/Web Workers/Browser Extensions/iframes
+
+- **Bidirectional Communication** - Method calls & callback support
+- **Type Safety** - Full TypeScript integration
+- **Lightweight** - < 1KB gzipped core
+- **Fault Tolerance** - Backup implementations & connection health checks
+
+## 🚀 Quick Start
+
+**Define a Shared Service**
 
 ```typescript
 import { defineProxy } from 'comctx'
 
 class Counter {
-  value = 0
-
-  async getValue() {}
-
-  async onChange(callback: (value: number) => void) {}
-
-  async increment() {}
-
-  async decrement() {}
-}
-
-export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
-  backup: false
-})
-
-// provide end, typically for service-workers, background, etc.
-const originCounter = provideCounter({
-  onMessage(message) {},
-  sendMessage(message) {}
-})
-originCounter.onChange((value) => {})
-
-// inject end, typically for the main page, content-script, etc.
-const proxyCounter = injectCounter({
-  onMessage(message) {},
-  sendMessage(message) {}
-})
-proxyCounter.increment()
-```
-
-- `originCounter` and `proxyCounter` will share the same `Counter`. `proxyCounter` is a virtual proxy, and accessing `proxyCounter` will forward requests to the `Counter` on the provide side, whereas `originCounter` directly refers to the `Counter` itself.
-
-- The inject side cannot directly use `get` and `set`; it must interact with `Counter` via asynchronous methods, but it supports callbacks.
-
-- Since `inject` is a virtual proxy, to support operations like `Reflect.has(proxyCounter, 'value')`, you can set `backup` to `true`, which will create a static copy on the inject side that doesn't actually run but serves as a template.
-
-- `provideCounter` and `injectCounter` require user-defined adapters for different environments that implement `onMessage` and `sendMessage` methods.
-
-## Examples
-
-- [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
-- [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
-- [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
-
-**shared.ts**
-
-The `Counter` will be shared across different contexts.
-
-```typescript
-import { defineProxy } from 'comctx'
-
-class Counter {
-  value = 0
-
+  public value = 0
   async getValue() {
     return this.value
   }
-
   async onChange(callback: (value: number) => void) {
     let oldValue = this.value
     setInterval(() => {
@@ -86,15 +43,11 @@ class Counter {
       }
     })
   }
-
   async increment() {
-    this.value++
-    return this.value
+    return ++this.value
   }
-
   async decrement() {
-    this.value--
-    return this.value
+    return --this.value
   }
 }
 
@@ -102,6 +55,89 @@ export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), 
   namespace: '__comctx-example__'
 })
 ```
+
+**Provider (Service Provider)**
+
+```typescript
+// provide end, typically for service-workers, background, etc.
+import type { Adapter, Message } from 'comctx'
+import { provideCounter } from './shared'
+
+export default class ProvideAdapter implements Adapter {
+  // Implement message sending
+  sendMessage(message: Message) {
+    postMessage(message)
+  }
+  // Implement message listener
+  onMessage(callback: (message: Message) => void) {
+    const handler = (event: MessageEvent) => callback(event.data)
+    addEventListener('message', handler)
+    return () => removeEventListener('message', handler)
+  }
+}
+
+const originCounter = provideCounter(new ProvideAdapter())
+
+originCounter.onChange(console.log)
+```
+
+**Consumer (Service Consumer)**
+
+```typescript
+// inject end, typically for the main page, content-script, etc.
+import type { Adapter, Message } from 'comctx'
+import { injectCounter } from './shared'
+
+export default class InjectAdapter implements Adapter {
+  // Implement message sending
+  sendMessage(message: Message) {
+    postMessage(message)
+  }
+  // Implement message listener
+  onMessage(callback: (message: Message) => void) {
+    const handler = (event: MessageEvent) => callback(event.data)
+    addEventListener('message', handler)
+    return () => removeEventListener('message', handler)
+  }
+}
+
+const proxyCounter = injectCounter(new InjectAdapter())
+
+// Support for callbacks
+proxyCounter.onChange(console.log)
+
+// Transparently call remote methods
+await proxyCounter.increment()
+const count = await proxyCounter.getValue()
+```
+
+- `originCounter` and `proxyCounter` will share the same `Counter`. `proxyCounter` is a virtual proxy, and accessing `proxyCounter` will forward requests to the `Counter` on the provide side, whereas `originCounter` directly refers to the `Counter` itself.
+
+- The inject side cannot directly use `get` and `set`; it must interact with `Counter` via asynchronous methods, but it supports callbacks.
+
+- Since `inject` is a virtual proxy, to support operations like `Reflect.has(proxyCounter, 'value')`, you can set `backup` to `true`, which will create a static copy on the inject side that doesn't actually run but serves as a template.
+
+- `provideCounter` and `injectCounter` require user-defined adapters for different environments that implement `onMessage` and `sendMessage` methods.
+
+## 🔌 Adapter Interface
+
+To adapt to different communication channels, implement the following interface:
+
+```typescript
+interface Adapter<M extends Message = Message> {
+  /** Register a message listener */
+  onMessage: (callback: (message: M) => void) => MaybePromise<OffMessage>
+
+  /** Send a message to the other side */
+  sendMessage: (message: M) => MaybePromise<void>
+}
+```
+
+## 📖Examples
+
+- [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
+- [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
+- [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
 
 ### Service Worker
 
@@ -359,10 +395,10 @@ await counter.decrement() // 1
 await counter.increment() // 0
 ```
 
-## Thanks
+## 🩷Thanks
 
 The inspiration for this project comes from [@webext-core/proxy-service](https://webext-core.aklinker1.io/proxy-service/installation/), but [Comctx](https://github.com/molvqingtai/comctx) aims to be a better version of it.
 
-## License
+## 📃License
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/molvqingtai/comctx/blob/master/LICENSE) file for details

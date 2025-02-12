@@ -2,12 +2,10 @@ import { defineProxy } from 'comctx'
 
 // Proxy object that will run in the Service Worker
 class Counter {
-  value = 0
-
+  public value = 0
   async getValue() {
     return this.value
   }
-
   async onChange(callback: (value: number) => void) {
     let oldValue = this.value
     setInterval(() => {
@@ -18,18 +16,14 @@ class Counter {
       }
     })
   }
-
   async increment() {
-    this.value++
-    return this.value
+    return ++this.value
   }
-
   async decrement() {
-    this.value--
-    return this.value
+    return --this.value
   }
 }
 
 export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
-  namespace: '__service-worker-example__'
+  namespace: '__iframe-example__'
 })

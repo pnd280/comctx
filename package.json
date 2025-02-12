@@ -1,9 +1,9 @@
 {
   "name": "comctx",
   "version": "1.0.1",
-  "description": "Easily interoperate across different contexts.",
-  "main": "core/dist/index.js",
+  "description": "Cross-context RPC solution with type safety and flexible adapters.",
   "type": "module",
+  "main": "core/dist/index.js",
   "scripts": {
     "dev": "pnpm --filter comctx dev",
     "build": "pnpm --filter comctx build",
