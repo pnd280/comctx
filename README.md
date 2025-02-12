@@ -208,7 +208,7 @@ see: [browser-extension-example](https://github.com/molvqingtai/comctx/tree/mast
 **InjectAdpter.ts**
 
 ```typescript
-import { browser } from 'webextension-polyfill'
+import browser from 'webextension-polyfill'
 import { Adapter, Message } from 'comctx'
 
 export interface MessageExtra extends Message {
@@ -232,7 +232,7 @@ export default class InjectAdapter implements Adapter<MessageExtra> {
 **ProvideAdapter.ts**
 
 ```typescript
-import { browser } from 'webextension-polyfill'
+import browser from 'webextension-polyfill'
 import { Adapter, Message } from 'comctx'
 
 export interface MessageExtra extends Message {
