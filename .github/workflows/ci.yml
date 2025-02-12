@@ -47,7 +47,7 @@ jobs:
       - run: pnpm run build
 
   linter:
-    needs: setup
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,7 +64,7 @@ jobs:
       - run: pnpm run check
 
   tests:
-    needs: setup
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
