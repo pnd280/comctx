@@ -8,8 +8,6 @@ Easily interoperate across different contexts.
 $ pnpm install comctx
 ```
 
-
-
 ## Introduction
 
 [Comctx](https://github.com/molvqingtai/comctx) shares the same goal as [Comlink](https://github.com/GoogleChromeLabs/comlink), but it is not reinventing the wheel. Since [Comlink](https://github.com/GoogleChromeLabs/comlink) relies on [MessagePort](https://developer.mozilla.org/en-US/docs/Web/API/MessagePort), which is not supported in all environments, this project implements a more flexible RPC approach that can more easily and effectively adapt to different runtime environments.
@@ -31,43 +29,38 @@ class Counter {
   async decrement() {}
 }
 
-export const [provideCounter, injectCounter] = defineProxy(() => new Counter(),{
+export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
   backup: false
 })
 
-
 // provide end, typically for service-workers, background, etc.
 const originCounter = provideCounter({
-  onMessage(message){},
-  sendMessage(message){}
+  onMessage(message) {},
+  sendMessage(message) {}
 })
-originCounter.onChange((data)=>{})
+originCounter.onChange((value) => {})
 
 // inject end, typically for the main page, content-script, etc.
 const proxyCounter = provideCounter({
-  onMessage(message){},
-  sendMessage(message){}
+  onMessage(message) {},
+  sendMessage(message) {}
 })
 proxyCounter.increment()
 ```
 
-* `originCounter` and `proxyCounter` will share the same `Counter`. `proxyCounter` is a virtual proxy, and accessing `proxyCounter` will forward requests to the `Counter` on the provide side, whereas `originCounter` directly refers to the `Counter` itself.
+- `originCounter` and `proxyCounter` will share the same `Counter`. `proxyCounter` is a virtual proxy, and accessing `proxyCounter` will forward requests to the `Counter` on the provide side, whereas `originCounter` directly refers to the `Counter` itself.
 
-* The inject side cannot directly use `get` and `set`; it must interact with `Counter` via asynchronous methods, but it supports callbacks.
+- The inject side cannot directly use `get` and `set`; it must interact with `Counter` via asynchronous methods, but it supports callbacks.
 
-* Since `inject` is a virtual proxy, to support operations like `Reflect.has(proxyCounter, 'value')`, you can set `backup` to `true`, which will create a static copy on the inject side that doesn't actually run but serves as a template.
+- Since `inject` is a virtual proxy, to support operations like `Reflect.has(proxyCounter, 'value')`, you can set `backup` to `true`, which will create a static copy on the inject side that doesn't actually run but serves as a template.
 
-* `provideCounter` and `injectCounter` require user-defined adapters for different environments that implement `onMessage` and `sendMessage` methods.
-
- 
+- `provideCounter` and `injectCounter` require user-defined adapters for different environments that implement `onMessage` and `sendMessage` methods.
 
 ## Examples
 
-* [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
-* [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
-* [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
-
-
+- [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
+- [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
+- [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
 
 **shared.ts**
 
@@ -108,14 +101,11 @@ class Counter {
 export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
   namespace: '__comctx-example__'
 })
-
 ```
 
+### Service Worker
 
-
-### Service Worker 
-
-This is an example of communication between the main page and an service-worker. 
+This is an example of communication between the main page and an service-worker.
 
 see: [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
 
@@ -209,8 +199,6 @@ await counter.decrement() // 1
 await counter.increment() // 0
 ```
 
-
-
 ### Browser Extension
 
 This is an example of communication between the content-script page and an background.
@@ -239,7 +227,6 @@ export default class InjectAdapter implements Adapter<MessageExtra> {
     return () => browser.runtime.onMessage.removeListener(handler)
   }
 }
-
 ```
 
 **ProvideAdapter.ts**
@@ -288,7 +275,7 @@ import { injectCounter } from './shared'
 import InjectAdapter from './InjectAdapter'
 
 const counter = injectCounter(new InjectAdapter())
-    
+
 counter.onChange((value) => {
   console.log('Background Value:', value) // 1,0
 })
@@ -299,8 +286,6 @@ await counter.decrement() // 1
 
 await counter.increment() // 0
 ```
-
-
 
 ### iframe
 
@@ -362,7 +347,7 @@ import { injectCounter } from './shared'
 import InjectAdapter from './InjectAdapter'
 
 const counter = injectCounter(new InjectAdapter())
-    
+
 counter.onChange((value) => {
   console.log('iframe Value:', value) // 1,0
 })
@@ -374,14 +359,9 @@ await counter.decrement() // 1
 await counter.increment() // 0
 ```
 
-
-
 ## Thanks
 
 The inspiration for this project comes from [@webext-core/proxy-service](https://webext-core.aklinker1.io/proxy-service/installation/), but [Comctx](https://github.com/molvqingtai/comctx) aims to be a better version of it.
-
-
-
 
 ## License
 
