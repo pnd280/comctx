@@ -1,6 +1,6 @@
 {
   "name": "comctx",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Easily interoperate across different contexts.",
   "main": "core/dist/index.js",
   "type": "module",

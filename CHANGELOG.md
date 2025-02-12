@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/molvqingtai/comctx/compare/v1.0.0...v1.0.1) (2025-02-12)
+
+
+### Performance Improvements
+
+* add comments ([023c98f](https://github.com/molvqingtai/comctx/commit/023c98fc5cc1fa5fa52679d4fa558b9fa601ab49))
+
 # 1.0.0 (2025-02-12)
 
 
