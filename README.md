@@ -41,7 +41,7 @@ const originCounter = provideCounter({
 originCounter.onChange((value) => {})
 
 // inject end, typically for the main page, content-script, etc.
-const proxyCounter = provideCounter({
+const proxyCounter = injectCounter({
   onMessage(message) {},
   sendMessage(message) {}
 })
