@@ -287,7 +287,7 @@ await counter.decrement() // 1
 await counter.increment() // 0
 ```
 
-### iframe
+### IFrame
 
 This is an example of communication between the main page and an iframe.
 
