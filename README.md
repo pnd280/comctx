@@ -36,14 +36,14 @@ export const [provideCounter, injectCounter] = defineProxy(() => new Counter(),{
 })
 
 
-// provide 端,一般是 service-worker background 等.
+// provide end, typically for service-workers, background, etc.
 const originCounter = provideCounter({
     onMessage(message){},
     sendMessage(message){}
 })
 originCounter.onChange((data)=>{})
 
-// inject 端,一般是 主页面 content-script 等.
+// inject end, typically for the main page, content-script, etc.
 const proxyCounter = provideCounter({
     onMessage(message){},
     sendMessage(message){}
