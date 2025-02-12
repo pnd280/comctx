@@ -12,9 +12,7 @@ $ pnpm install comctx
 
 ## Introduction
 
-[Comctx](https://github.com/molvqingtai/comctx) shares the same goal as [Comlink](https://github.com/GoogleChromeLabs/comlink), but it is not reinventing the wheel. While [Comlink](https://github.com/GoogleChromeLabs/comlink) relies on [MessagePort](https://developer.mozilla.org/en-US/docs/Web/API/MessagePort), which is not supported in all environments, this project implements a more flexible RPC approach. It makes adapting to different runtime environments simpler and more effective.
-
-
+[Comctx](https://github.com/molvqingtai/comctx) shares the same goal as [Comlink](https://github.com/GoogleChromeLabs/comlink), but it is not reinventing the wheel. Since [Comlink](https://github.com/GoogleChromeLabs/comlink) relies on [MessagePort](https://developer.mozilla.org/en-US/docs/Web/API/MessagePort), which is not supported in all environments, this project implements a more flexible RPC approach that can more easily and effectively adapt to different runtime environments.
 
 ## Setup
 
