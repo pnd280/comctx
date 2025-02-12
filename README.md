@@ -12,7 +12,7 @@ $ pnpm install comctx
 
 ## Introduction
 
-[Comctx](https://github.com/molvqingtai/comctx) 与  [Comlink](https://github.com/GoogleChromeLabs/comlink) 有着同样的目标,但这不是重复造轮子, 由于 [Comlink](https://github.com/GoogleChromeLabs/comlink) 依赖 [MessagePort](https://developer.mozilla.org/en-US/docs/Web/API/MessagePort), 并不是在所有环境中得到支持,这个项目实现了一种更灵活的方式实现 RPC,它让适配不同运行环境变得更简单.
+[Comctx](https://github.com/molvqingtai/comctx) shares the same goal as [Comlink](https://github.com/GoogleChromeLabs/comlink), but it is not reinventing the wheel. While [Comlink](https://github.com/GoogleChromeLabs/comlink) relies on [MessagePort](https://developer.mozilla.org/en-US/docs/Web/API/MessagePort), which is not supported in all environments, this project implements a more flexible RPC approach. It makes adapting to different runtime environments simpler and more effective.
 
 
 
@@ -53,10 +53,13 @@ const proxyCounter = provideCounter({
 proxyCounter.increment()
 ```
 
-* originCounter 和 proxyCounter 将共享 Counter, proxyCounter 是一个虚拟的代理, 访问 proxyCounter 将转发到 provide 端的 Counter,而 originCounter则是 Counter 本身
-* inject 端不能直接使用 get 和 set, 必须通过调用异步方法操作 Counter,但是支持 callback
-* 因为 inject 是一个虚拟的代理, 如果要支持 Reflect.has(proxyCounter, 'value') 等操作, 可以将 backup 设置为 true, 将会在 inject 端复制一份拷贝, 它不会真正运行,仅仅是一个静态的模板.
-* provideCounter/injectCounter 需要接受用户自定义不同环境的适配器,即实现 onMessage/sendMessage 方法.
+* `originCounter` and `proxyCounter` will share the same `Counter`. `proxyCounter` is a virtual proxy, and accessing `proxyCounter` will forward requests to the `Counter` on the provide side, whereas `originCounter` directly refers to the `Counter` itself.
+
+* The inject side cannot directly use `get` and `set`; it must interact with `Counter` via asynchronous methods, but it supports callbacks.
+
+* Since `inject` is a virtual proxy, to support operations like `Reflect.has(proxyCounter, 'value')`, you can set `backup` to `true`, which will create a static copy on the inject side that doesn't actually run but serves as a template.
+
+* `provideCounter` and `injectCounter` require user-defined adapters for different environments that implement `onMessage` and `sendMessage` methods.
 
  
 
@@ -64,7 +67,7 @@ proxyCounter.increment()
 
 **shared.ts**
 
-Counter 将会在不同的环境共享
+The `Counter` will be shared across different contexts.
 
 ```typescript
 import { defineProxy } from 'comctx'
@@ -106,7 +109,7 @@ export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), 
 
 
 
-#### Service Worker 
+### Service Worker 
 
 This is an example of communication between the main page and an service-worker. 
 
@@ -204,7 +207,7 @@ await counter.increment() // 0
 
 
 
-#### Browser Extension
+### Browser Extension
 
 This is an example of communication between the content-script page and an background.
 
