@@ -7,6 +7,7 @@ export interface Options {
   backup?: boolean
   waitProvide?: boolean
   waitInterval?: number
+  namespace?: string
 }
 
 export interface Message {
@@ -18,21 +19,22 @@ export interface Message {
   args: any[]
   error?: string
   data?: any
+  namespace: string
   timeStamp: number
 }
 
 export type OffMessage = () => MaybePromise<void>
 
-export type OnMessage = (callback: (message: Message) => void) => MaybePromise<OffMessage | void>
+export type OnMessage<M extends Message = Message> = (callback: (message: M) => void) => MaybePromise<OffMessage>
 
-export type SendMessage = (message: Message) => MaybePromise<void>
+export type SendMessage<M extends Message = Message> = (message: M) => MaybePromise<void>
 
-export interface Adapter {
-  onMessage: OnMessage
-  sendMessage: SendMessage
+export interface Adapter<M extends Message = Message> {
+  onMessage: OnMessage<M>
+  sendMessage: SendMessage<M>
 }
 
-const waitProvide = async (adapter: Adapter, interval: number = 0) => {
+const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
   await new Promise<void>((resolve, reject) => {
     const clearIntervalImmediate = setIntervalImmediate(async () => {
       try {
@@ -43,26 +45,29 @@ const waitProvide = async (adapter: Adapter, interval: number = 0) => {
           path: [],
           sender: 'inject',
           args: [],
+          namespace: options.namespace,
           timeStamp: Date.now()
         })
         const offMessage = await adapter.onMessage((message) => {
+          if (message.namespace !== options.namespace) return
           if (message.sender !== 'provide') return
           if (message.type !== 'pong') return
           if (message.id !== id) return
           clearIntervalImmediate()
           resolve()
-          offMessage?.()
+          offMessage()
         })
       } catch (error) {
         clearIntervalImmediate()
         reject(error)
       }
-    }, interval)
+    }, options.waitInterval)
   })
 }
 
-const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapter) => {
+const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapter, options: Required<Options>) => {
   adapter.onMessage(async (message) => {
+    if (message.namespace !== options.namespace) return
     if (message.sender !== 'inject') return
 
     switch (message.type) {
@@ -71,6 +76,7 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
           ...message,
           type: 'pong',
           sender: 'provide',
+          namespace: options.namespace,
           timeStamp: Date.now()
         })
         break
@@ -85,6 +91,7 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
                 data: args,
                 type: 'callback',
                 sender: 'provide',
+                namespace: options.namespace,
                 timeStamp: Date.now()
               })
             }
@@ -93,10 +100,9 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
           }
         })
         try {
-          message.data = await (message.path.reduce((acc, key) => acc[key], target) as unknown as Function).apply(
-            target,
-            mapArgs
-          )
+          message.data = await (
+            message.path.reduce((acc, key) => acc[key], target) as unknown as (...args: any[]) => any
+          ).apply(target, mapArgs)
         } catch (error) {
           message.error = (error as Error).message
         }
@@ -104,6 +110,7 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
           ...message,
           type: 'apply',
           sender: 'provide',
+          namespace: options.namespace,
           timeStamp: Date.now()
         })
         break
@@ -113,7 +120,7 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
   return target
 }
 
-const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter, options: Options) => {
+const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter, options: Required<Options>) => {
   const createProxy = (target: T, path: string[]) => {
     const proxy = new Proxy<T>(target, {
       get(target, key: string) {
@@ -122,7 +129,7 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
       apply(_target, _thisArg, args) {
         return new Promise<Message>(async (resolve, reject) => {
           try {
-            options.waitProvide && (await waitProvide(adapter, options.waitInterval))
+            options.waitProvide && (await waitProvide(adapter, options))
 
             const callbackIds: string[] = []
             const mapArgs = args.map((arg) => {
@@ -130,6 +137,7 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
                 const callbackId = uuid()
                 callbackIds.push(callbackId)
                 adapter.onMessage((_message) => {
+                  if (_message.namespace !== options.namespace) return
                   if (_message.sender !== 'provide') return
                   if (_message.type !== 'callback') return
                   if (_message.id !== callbackId) return
@@ -144,11 +152,12 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
             const id = uuid()
 
             const offMessage = await adapter.onMessage((_message) => {
+              if (_message.namespace !== options.namespace) return
               if (_message.sender !== 'provide') return
               if (_message.type !== 'apply') return
               if (_message.id !== id) return
               _message.error ? reject(new Error(_message.error)) : resolve(_message.data)
-              offMessage?.()
+              offMessage()
             })
 
             adapter.sendMessage({
@@ -158,7 +167,8 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
               sender: 'inject',
               callbackIds,
               args: mapArgs,
-              timeStamp: Date.now()
+              timeStamp: Date.now(),
+              namespace: options.namespace
             })
           } catch (error) {
             reject(error)
@@ -171,22 +181,25 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
   return createProxy(source, [])
 }
 
-const provideProxy = <T extends Record<string, any>>(context: () => T) => {
+const provideProxy = <T extends Record<string, any>>(context: () => T, options: Required<Options>) => {
   let target: T
-  return (adapter: Adapter) => (target ??= createProvide(context(), adapter))
+  return <M extends Message = Message>(adapter: Adapter<M>) =>
+    (target ??= createProvide(context(), adapter as unknown as Adapter, options))
 }
 
-const injectProxy = <T extends Record<string, any>>(context: () => T, options: Options) => {
+const injectProxy = <T extends Record<string, any>>(context: () => T, options: Required<Options>) => {
   let target: T
-  return (adapter: Adapter) =>
-    (target ??= createInject(options.backup ? context() : ((() => {}) as unknown as T), adapter, options))
+  return <M extends Message = Message>(adapter: Adapter<M>) =>
+    (target ??= createInject(
+      options.backup ? context() : ((() => {}) as unknown as T),
+      adapter as unknown as Adapter,
+      options
+    ))
 }
 
 export const defineProxy = <T extends Record<string, any>>(context: () => T, options?: Options) => {
-  return [
-    provideProxy(context),
-    injectProxy(context, { backup: false, waitProvide: true, waitInterval: 300, ...options })
-  ] as const
+  const mergedOptions = { backup: false, waitProvide: true, waitInterval: 300, namespace: '__comctx__', ...options }
+  return [provideProxy(context, mergedOptions), injectProxy(context, mergedOptions)] as const
 }
 
 export default defineProxy

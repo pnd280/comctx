@@ -5,18 +5,25 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "playwright test"
+    "test": "pnpm --filter iframe-example build && vitest",
+    "lint": "eslint --fix --cache",
+    "check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.50.1",
-    "@types/node": "^22.13.0",
-    "playwright": "^1.50.1",
-    "typescript": "^5.7.3"
+    "@types/node": "^22.13.1",
+    "@vitest/browser": "^3.0.5",
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "globals": "^15.14.0",
+    "happy-dom": "^17.0.4",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
   },
   "dependencies": {
-    "comctx": "workspace:*"
+    "@testing-library/dom": "^10.4.0"
   }
 }

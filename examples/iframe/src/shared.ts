@@ -30,4 +30,6 @@ class Counter {
   }
 }
 
-export const [provideCounter, injectCounter] = defineProxy(() => new Counter())
+export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
+  namespace: '__iframe-example__'
+})

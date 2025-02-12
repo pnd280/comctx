@@ -1,4 +1,3 @@
-import { browser } from 'wxt/browser'
 import { defineContentScript } from 'wxt/sandbox'
 
 import { injectCounter } from '@/shared'

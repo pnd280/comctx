@@ -10,7 +10,7 @@ void (async () => {
   // Use the proxy object
   const counter = injectCounter(new InjectAdapter())
 
-  const value = await counter.getValue()
+  const initValue = await counter.getValue()
 
   document.querySelector<HTMLDivElement>('#app')!.insertBefore(
     createElement(`
@@ -18,9 +18,9 @@ void (async () => {
         <h1>${name}</h1>
         <p>${description}</p>
         <div class="card">
-          <button id="decrement" type="button">-</button>
-          <div id="value">${value}</div>
-          <button id="increment" type="button">+</button>
+          <button data-testid="decrement" id="decrement" type="button">-</button>
+          <div data-testid="value" id="value">${initValue}</div>
+          <button data-testid="increment" id="increment" type="button">+</button>
         </div>
       </div>
     `),

@@ -10,6 +10,9 @@ export default [
   ...tseslint.configs.recommended,
   prettierPlugin,
   {
+    ignores: ['**/dist/*']
+  },
+  {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-expressions': 'off'

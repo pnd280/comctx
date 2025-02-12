@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 .output
+.eslintcache
 dist
 stats.html
 stats-*.json
@@ -17,7 +18,7 @@ web-ext.config.ts
 
 # Editor directories and files
 .vscode/*
-!.vscode/extensions.json
+!.vscode/extension.json
 .idea
 .DS_Store
 *.suo

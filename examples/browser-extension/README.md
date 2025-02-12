@@ -1,4 +1,4 @@
-# browser-extensions-example
+# browser-extension-example
 
 **Run**
 

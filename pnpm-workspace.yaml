@@ -1,4 +1,5 @@
 packages:
   - 'core'
   - '__tests__'
+  - '__tests__/fixtures/*'
   - 'examples/*'

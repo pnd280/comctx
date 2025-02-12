@@ -1,4 +1,5 @@
 import { defineProxy } from 'comctx'
+import { browser } from 'wxt/browser'
 
 // Proxy object that will run in the background script
 class Counter {
@@ -30,4 +31,6 @@ class Counter {
   }
 }
 
-export const [provideCounter, injectCounter] = defineProxy(() => new Counter())
+export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
+  namespace: browser.runtime.id
+})

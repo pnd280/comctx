@@ -5,9 +5,7 @@ declare const self: ServiceWorkerGlobalScope
 export default class ProvideAdapter implements Adapter {
   sendMessage(message: Message) {
     self.clients.matchAll().then((clients) => {
-      clients.forEach((client) => {
-        client.postMessage(message)
-      })
+      clients.forEach((client) => client.postMessage(message))
     })
   }
   onMessage(callback: (message: Message) => void) {

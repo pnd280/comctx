@@ -11,12 +11,12 @@ void (async () => {
     <div>
       <h1>I am an iframe page</h1>
       <div class="card">
-        <h4 id="value">Value: ${counter.value} </h4>
+        <h4>Value: <span data-testid="value" id="value">${counter.value}</span></h4>
       </div>
     </div>
   `
 
   counter.onChange((value) => {
-    document.querySelector<HTMLSpanElement>('#value')!.textContent = `Value: ${value}`
+    document.querySelector<HTMLSpanElement>('#value')!.textContent = `${value}`
   })
 })().catch(console.error)
