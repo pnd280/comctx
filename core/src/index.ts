@@ -197,6 +197,33 @@ const injectProxy = <T extends Record<string, any>>(context: () => T, options: R
     ))
 }
 
+/**
+ * Creates a pair of proxies for the provider (provide) and injector (inject) to facilitate method calls and callbacks across communication layers.
+ *
+ * @param context - A factory function for the context that returns the target object to be proxied:
+ *   - For the provider: This object directly handles remote calls.
+ *   - For the injector: When the backup option is enabled, it serves as a local fallback implementation.
+ * @param options - Configuration options:
+ *   - backup: Whether to use a backup implementation of the original object in the injector (default is false).
+ *   - waitProvide: Whether the injector should wait for the provider to be ready (default is true).
+ *   - waitInterval: The polling interval (in milliseconds, default 300) when the injector is waiting for the provider.
+ *   - namespace: The communication namespace used to isolate messages between different proxy instances (default is '__comctx__').
+ * @returns Returns a tuple containing two elements:
+ *   [0] provideProxy: Accepts an adapter and creates a provider proxy.
+ *   [1] injectProxy: Accepts an adapter and creates an injector proxy.
+ *
+ * @example
+ * const [provide, inject] = defineProxy(() => ({
+ *   add: (a, b) => a + b
+ * }), { namespace: 'math' })
+ *
+ * // Provider
+ * provide(webWorkerAdapter)
+ *
+ * // Injector
+ * const math = inject(webWorkerAdapter)
+ * await math.add(2, 3) // 5
+ */
 export const defineProxy = <T extends Record<string, any>>(context: () => T, options?: Options) => {
   const mergedOptions = { backup: false, waitProvide: true, waitInterval: 300, namespace: '__comctx__', ...options }
   return [provideProxy(context, mergedOptions), injectProxy(context, mergedOptions)] as const
