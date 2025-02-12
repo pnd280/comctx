@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/molvqingtai/comctx/compare/v1.0.1...v1.0.2) (2025-02-12)
+
+
+### Performance Improvements
+
+* update docs & change slogan ([f8436c7](https://github.com/molvqingtai/comctx/commit/f8436c73e88bef6baa8d7fd52d5c545770292dd8))
+
 ## [1.0.1](https://github.com/molvqingtai/comctx/compare/v1.0.0...v1.0.1) (2025-02-12)
 
 
