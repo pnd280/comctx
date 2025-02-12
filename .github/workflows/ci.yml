@@ -2,14 +2,15 @@ name: CI
 
 on:
   push:
-    branches:
-      - develop
+    branches: [develop]
   pull_request:
-    branches:
-      - develop
+    branches: [develop]
+
 jobs:
-  install:
+  setup:
     runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.pnpm-cache.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,9 +19,19 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: latest
-      - run: pnpm install --ignore-scripts
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        id: pnpm-cache
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
   build:
-    needs: install
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,9 +41,13 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: latest
+      - name: Restore dependencies
+        if: needs.setup.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run build
+
   linter:
-    needs: build
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,10 +57,14 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: latest
+      - name: Restore dependencies
+        if: needs.setup.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint
       - run: pnpm run check
+
   tests:
-    needs: linter
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,4 +74,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: latest
+      - name: Restore dependencies
+        if: needs.setup.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run test
