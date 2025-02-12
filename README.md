@@ -378,7 +378,7 @@ await counter.increment() // 0
 
 ## Thanks
 
-The inspiration for this project comes from [@webext-core/proxy-service](https://webext-core.aklinker1.io/proxy-service/installation/), but it aims to be better.
+The inspiration for this project comes from [@webext-core/proxy-service](https://webext-core.aklinker1.io/proxy-service/installation/), but [Comctx](https://github.com/molvqingtai/comctx) aims to be a better version of it.
 
 
 
