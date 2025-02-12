@@ -111,7 +111,7 @@ export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), 
 
 This is an example of communication between the main page and an service-worker. 
 
-[service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
+see: [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
 
 **InjectAdpter.ts**
 
@@ -209,7 +209,7 @@ await counter.increment() // 0
 
 This is an example of communication between the content-script page and an background.
 
-[browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
+see: [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
 
 **InjectAdpter.ts**
 
@@ -300,7 +300,7 @@ await counter.increment() // 0
 
 This is an example of communication between the main page and an iframe.
 
-[iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
+see: [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
 
 **InjectAdapter.ts**
 
@@ -369,6 +369,10 @@ await counter.increment() // 0
 ```
 
 
+
+## Thanks
+
+The inspiration for this project comes from [@webext-core/proxy-service](https://webext-core.aklinker1.io/proxy-service/installation/), but it aims to be better.
 
 
 
