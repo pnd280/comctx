@@ -25,13 +25,13 @@ export interface Message {
 
 export type OffMessage = () => MaybePromise<void>
 
-export type OnMessage<M extends Message = Message> = (callback: (message: M) => void) => MaybePromise<OffMessage>
-
 export type SendMessage<M extends Message = Message> = (message: M) => MaybePromise<void>
 
+export type OnMessage<M extends Message = Message> = (callback: (message: M) => void) => MaybePromise<OffMessage>
+
 export interface Adapter<M extends Message = Message> {
-  onMessage: OnMessage<M>
   sendMessage: SendMessage<M>
+  onMessage: OnMessage<M>
 }
 
 const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
@@ -39,6 +39,15 @@ const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
     const clearIntervalImmediate = setIntervalImmediate(async () => {
       try {
         const id = uuid()
+        const offMessage = await adapter.onMessage((message) => {
+          if (message.namespace !== options.namespace) return
+          if (message.sender !== 'provide') return
+          if (message.type !== 'pong') return
+          if (message.id !== id) return
+          clearIntervalImmediate()
+          offMessage()
+          resolve()
+        })
         adapter.sendMessage({
           type: 'ping',
           id,
@@ -47,15 +56,6 @@ const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
           args: [],
           namespace: options.namespace,
           timeStamp: Date.now()
-        })
-        const offMessage = await adapter.onMessage((message) => {
-          if (message.namespace !== options.namespace) return
-          if (message.sender !== 'provide') return
-          if (message.type !== 'pong') return
-          if (message.id !== id) return
-          clearIntervalImmediate()
-          resolve()
-          offMessage()
         })
       } catch (error) {
         clearIntervalImmediate()
