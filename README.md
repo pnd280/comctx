@@ -14,7 +14,7 @@ $ pnpm install comctx
 
 ## 💡Features
 
-- **Environment Agnostic** - Works across Service Workers, Browser Extensions, iframes, Electron, and more
+- **Environment Agnostic** - Works across Web Workers, Browser Extensions, iframes, Electron, and more
 
 - **Bidirectional Communication** - Method calls & callback support
 - **Type Safety** - Full TypeScript integration
@@ -127,7 +127,7 @@ To adapt to different communication channels, implement the following interface:
 interface Adapter<M extends Message = Message> {
   /** Send a message to the other side */
   sendMessage: (message: M) => MaybePromise<void>
-    
+
   /** Register a message listener */
   onMessage: (callback: (message: M) => void) => MaybePromise<OffMessage>
 }
