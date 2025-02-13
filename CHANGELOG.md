@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/molvqingtai/comctx/compare/v1.0.2...v1.0.3) (2025-02-13)
+
+
+### Bug Fixes
+
+* wait listener might not work ([5733a3e](https://github.com/molvqingtai/comctx/commit/5733a3ee88e8394ccfe5040eaf0b90b99b06e790))
+
 ## [1.0.2](https://github.com/molvqingtai/comctx/compare/v1.0.1...v1.0.2) (2025-02-12)
 
 
