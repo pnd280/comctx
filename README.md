@@ -2,7 +2,7 @@
 
 Cross-context RPC solution with type safety and flexible adapters.
 
-[![version](https://img.shields.io/github/v/release/molvqingtai/comctx)](https://www.npmjs.com/package/comctx) [![workflow](https://github.com/molvqingtai/comctx/actions/workflows/ci.yml/badge.svg)](https://github.com/molvqingtai/comctx/actions) [![download](https://img.shields.io/npm/dt/comctx)](https://www.npmjs.com/package/comctx) ![npm package minimized gzipped size](https://img.shields.io/bundlejs/size/comctx)
+[![version](https://img.shields.io/github/v/release/molvqingtai/comctx)](https://www.npmjs.com/package/comctx) [![workflow](https://github.com/molvqingtai/comctx/actions/workflows/ci.yml/badge.svg)](https://github.com/molvqingtai/comctx/actions) [![download](https://img.shields.io/npm/dt/comctx)](https://www.npmjs.com/package/comctx) [![npm package minimized gzipped size](https://img.shields.io/bundlejs/size/comctx)](https://www.npmjs.com/package/comctx)
 
 ```shell
 $ pnpm install comctx
@@ -14,7 +14,7 @@ $ pnpm install comctx
 
 ## 💡Features
 
-- **Environment Agnostic** - Works across Service Workers/Web Workers/Browser Extensions/iframes
+- **Environment Agnostic** - Works across Service Workers, Browser Extensions, iframes, Electron, and more
 
 - **Bidirectional Communication** - Method calls & callback support
 - **Type Safety** - Full TypeScript integration
@@ -125,11 +125,11 @@ To adapt to different communication channels, implement the following interface:
 
 ```typescript
 interface Adapter<M extends Message = Message> {
-  /** Register a message listener */
-  onMessage: (callback: (message: M) => void) => MaybePromise<OffMessage>
-
   /** Send a message to the other side */
   sendMessage: (message: M) => MaybePromise<void>
+    
+  /** Register a message listener */
+  onMessage: (callback: (message: M) => void) => MaybePromise<OffMessage>
 }
 ```
 

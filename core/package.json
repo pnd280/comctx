@@ -14,12 +14,15 @@
     "postMessage",
     "BroadcastChannel",
     "MessageChannel",
+    "ipcMain",
     "MessagePort",
     "ServiceWorker",
     "WebWorker",
-    "extension",
+    "Browser Extension",
     "rpc",
-    "comlink"
+    "comlink",
+    "Electron",
+    "iframe"
   ],
   "author": "molvqingtai",
   "license": "MIT",
