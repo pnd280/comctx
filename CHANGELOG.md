@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/molvqingtai/comctx/compare/v1.0.3...v1.0.4) (2025-02-15)
+
+
+### Bug Fixes
+
+* external message may be empty ([d723bc1](https://github.com/molvqingtai/comctx/commit/d723bc1ae2ce16e91b40313e75928231a87064df))
+
 ## [1.0.3](https://github.com/molvqingtai/comctx/compare/v1.0.2...v1.0.3) (2025-02-13)
 
 
