@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/molvqingtai/comctx/compare/v1.0.6...v1.0.7) (2025-02-15)
+
+
+### Bug Fixes
+
+* backup:true, causing an error when accessing the getter ([8447fe8](https://github.com/molvqingtai/comctx/commit/8447fe84c63bdfffabb0c894ec91cca65875cb33))
+
 ## [1.0.6](https://github.com/molvqingtai/comctx/compare/v1.0.5...v1.0.6) (2025-02-15)
 
 
