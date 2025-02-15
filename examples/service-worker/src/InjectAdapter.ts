@@ -7,10 +7,10 @@ export default class InjectAdapter implements Adapter {
     this.workbox = new Workbox(path, { type: import.meta.env.MODE === 'production' ? 'classic' : 'module' })
     this.workbox.register()
   }
-  sendMessage(message: Message) {
-    this.workbox.messageSW(message)
+  sendMessage(message?: Message) {
+    this.workbox.messageSW(message ?? {})
   }
-  onMessage(callback: (message: Message) => void) {
+  onMessage(callback: (message?: Message) => void) {
     const handler = (event: WorkboxMessageEvent) => callback(event.data)
 
     this.workbox.addEventListener('message', handler)
