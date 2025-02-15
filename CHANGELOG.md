@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/molvqingtai/comctx/compare/v1.0.5...v1.0.6) (2025-02-15)
+
+
+### Performance Improvements
+
+* remove redundant code & update examples ([e7c49cd](https://github.com/molvqingtai/comctx/commit/e7c49cd980c2f5026253a7448e1eadd20e813232))
+
 ## [1.0.5](https://github.com/molvqingtai/comctx/compare/v1.0.4...v1.0.5) (2025-02-15)
 
 
