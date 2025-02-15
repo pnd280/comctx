@@ -65,11 +65,11 @@ import { provideCounter } from './shared'
 
 export default class ProvideAdapter implements Adapter {
   // Implement message sending
-  sendMessage(message: Message) {
+  sendMessage(message?: Message) {
     postMessage(message)
   }
   // Implement message listener
-  onMessage(callback: (message: Message) => void) {
+  onMessage(callback: (message?: Message) => void) {
     const handler = (event: MessageEvent) => callback(event.data)
     addEventListener('message', handler)
     return () => removeEventListener('message', handler)
@@ -90,11 +90,11 @@ import { injectCounter } from './shared'
 
 export default class InjectAdapter implements Adapter {
   // Implement message sending
-  sendMessage(message: Message) {
+  sendMessage(message?: Message) {
     postMessage(message)
   }
   // Implement message listener
-  onMessage(callback: (message: Message) => void) {
+  onMessage(callback: (message?: Message) => void) {
     const handler = (event: MessageEvent) => callback(event.data)
     addEventListener('message', handler)
     return () => removeEventListener('message', handler)
@@ -126,10 +126,10 @@ To adapt to different communication channels, implement the following interface:
 ```typescript
 interface Adapter<M extends Message = Message> {
   /** Send a message to the other side */
-  sendMessage: (message: M) => MaybePromise<void>
+  sendMessage: (message?: M) => MaybePromise<void>
 
   /** Register a message listener */
-  onMessage: (callback: (message: M) => void) => MaybePromise<OffMessage>
+  onMessage: (callback: (message?: M) => void) => MaybePromise<OffMessage>
 }
 ```
 
@@ -157,10 +157,10 @@ export default class InjectAdapter implements Adapter {
     this.workbox = new Workbox(path, { type: import.meta.env.MODE === 'production' ? 'classic' : 'module' })
     this.workbox.register()
   }
-  sendMessage(message: Message) {
-    this.workbox.messageSW(message)
+  sendMessage(message?: Message) {
+    this.workbox.messageSW(message ?? {})
   }
-  onMessage(callback: (message: Message) => void) {
+  onMessage(callback: (message?: Message) => void) {
     const handler = (event: WorkboxMessageEvent) => callback(event.data)
 
     this.workbox.addEventListener('message', handler)
@@ -177,12 +177,12 @@ import { Adapter, Message } from 'comctx'
 declare const self: ServiceWorkerGlobalScope
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage(message: Message) {
+  sendMessage(message?: Message) {
     self.clients.matchAll().then((clients) => {
       clients.forEach((client) => client.postMessage(message))
     })
   }
-  onMessage(callback: (message: Message) => void) {
+  onMessage(callback: (message?: Message) => void) {
     const handler = (event: ExtendableMessageEvent) => callback(event.data)
     self.addEventListener('message', handler)
     return () => self.removeEventListener('message', handler)
@@ -248,14 +248,14 @@ import browser from 'webextension-polyfill'
 import { Adapter, Message } from 'comctx'
 
 export interface MessageExtra extends Message {
-  url: string
+  url?: string
 }
 
 export default class InjectAdapter implements Adapter<MessageExtra> {
-  sendMessage(message: Message) {
+  sendMessage(message?: Message) {
     browser.runtime.sendMessage(browser.runtime.id, { ...message, url: document.location.href })
   }
-  onMessage(callback: (message: MessageExtra) => void) {
+  onMessage(callback: (message?: MessageExtra) => void) {
     const handler = (message: any): undefined => {
       callback(message)
     }
@@ -272,16 +272,16 @@ import browser from 'webextension-polyfill'
 import { Adapter, Message } from 'comctx'
 
 export interface MessageExtra extends Message {
-  url: string
+  url?: string
 }
 
 export default class ProvideAdapter implements Adapter<MessageExtra> {
-  async sendMessage(message: MessageExtra) {
-    const tabs = await browser.tabs.query({ url: message.url })
+  async sendMessage(message?: MessageExtra) {
+    const tabs = await browser.tabs.query({ url: message?.url })
     tabs.map((tab) => browser.tabs.sendMessage(tab.id!, message))
   }
 
-  onMessage(callback: (message: MessageExtra) => void) {
+  onMessage(callback: (message?: MessageExtra) => void) {
     const handler = (message: any): undefined => {
       callback(message)
     }
@@ -335,10 +335,10 @@ see: [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples
 import { Adapter, Message } from 'comctx'
 
 export default class InjectAdapter implements Adapter {
-  sendMessage(message: Message) {
+  sendMessage(message?: Message) {
     window.postMessage(message, '*')
   }
-  onMessage(callback: (message: Message) => void) {
+  onMessage(callback: (message?: Message) => void) {
     const handler = (event: MessageEvent) => callback(event.data)
     window.addEventListener('message', handler)
     return () => window.removeEventListener('message', handler)
@@ -352,10 +352,10 @@ export default class InjectAdapter implements Adapter {
 import { Adapter, Message } from 'comctx'
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage(message: Message) {
+  sendMessage(message?: Message) {
     window.parent.postMessage(message, '*')
   }
-  onMessage(callback: (message: Message) => void) {
+  onMessage(callback: (message?: Message) => void) {
     const handler = (event: MessageEvent) => callback(event.data)
     window.parent.addEventListener('message', handler)
     return () => window.parent.removeEventListener('message', handler)
