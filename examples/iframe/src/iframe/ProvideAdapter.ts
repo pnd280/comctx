@@ -1,10 +1,10 @@
-import { Adapter, Message } from 'comctx'
+import { Adapter, SendMessage, OnMessage } from 'comctx'
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     window.parent.postMessage(message, '*')
   }
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent) => callback(event.data)
     window.parent.addEventListener('message', handler)
     return () => window.parent.removeEventListener('message', handler)

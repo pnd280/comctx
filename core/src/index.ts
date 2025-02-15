@@ -121,7 +121,7 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
           })
           _message.data = await (
             _message.path?.reduce((acc, key) => acc[key], target) as unknown as (...args: any[]) => any
-          ).apply(target, mapArgs ?? [])
+          ).apply(target, mapArgs)
         } catch (error) {
           _message.error = (error as Error).message
         }

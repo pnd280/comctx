@@ -60,16 +60,16 @@ export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), 
 
 ```typescript
 // provide end, typically for service-workers, background, etc.
-import type { Adapter, Message } from 'comctx'
+import type { Adapter, SendMessage, OnMessage } from 'comctx'
 import { provideCounter } from './shared'
 
 export default class ProvideAdapter implements Adapter {
   // Implement message sending
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     postMessage(message)
   }
   // Implement message listener
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent) => callback(event.data)
     addEventListener('message', handler)
     return () => removeEventListener('message', handler)
@@ -85,16 +85,16 @@ originCounter.onChange(console.log)
 
 ```typescript
 // inject end, typically for the main page, content-script, etc.
-import type { Adapter, Message } from 'comctx'
+import type { Adapter, SendMessage, OnMessage } from 'comctx'
 import { injectCounter } from './shared'
 
 export default class InjectAdapter implements Adapter {
   // Implement message sending
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     postMessage(message)
   }
   // Implement message listener
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent) => callback(event.data)
     addEventListener('message', handler)
     return () => removeEventListener('message', handler)
@@ -149,7 +149,7 @@ see: [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/
 
 ```typescript
 import { Workbox, WorkboxMessageEvent } from 'workbox-window'
-import { Adapter, Message } from 'comctx'
+import { Adapter, SendMessage, OnMessage } from 'comctx'
 
 export default class InjectAdapter implements Adapter {
   workbox: Workbox
@@ -157,12 +157,11 @@ export default class InjectAdapter implements Adapter {
     this.workbox = new Workbox(path, { type: import.meta.env.MODE === 'production' ? 'classic' : 'module' })
     this.workbox.register()
   }
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     this.workbox.messageSW(message)
   }
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: WorkboxMessageEvent) => callback(event.data)
-
     this.workbox.addEventListener('message', handler)
     return () => this.workbox.removeEventListener('message', handler)
   }
@@ -172,17 +171,17 @@ export default class InjectAdapter implements Adapter {
 **ProvideAdpter.ts**
 
 ```typescript
-import { Adapter, Message } from 'comctx'
+import { Adapter, SendMessage, OnMessage } from 'comctx'
 
 declare const self: ServiceWorkerGlobalScope
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     self.clients.matchAll().then((clients) => {
       clients.forEach((client) => client.postMessage(message))
     })
   }
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: ExtendableMessageEvent) => callback(event.data)
     self.addEventListener('message', handler)
     return () => self.removeEventListener('message', handler)
@@ -245,17 +244,17 @@ see: [browser-extension-example](https://github.com/molvqingtai/comctx/tree/mast
 
 ```typescript
 import browser from 'webextension-polyfill'
-import { Adapter, Message } from 'comctx'
+import { Adapter, Message, SendMessage, OnMessage } from 'comctx'
 
 export interface MessageExtra extends Message {
   url: string
 }
 
 export default class InjectAdapter implements Adapter<MessageExtra> {
-  sendMessage(message: Message) {
+  sendMessage: SendMessage<MessageExtra> = (message) => {
     browser.runtime.sendMessage(browser.runtime.id, { ...message, url: document.location.href })
   }
-  onMessage(callback: (message?: MessageExtra) => void) {
+  onMessage: OnMessage<MessageExtra> = (callback) => {
     const handler = (message: any): undefined => {
       callback(message)
     }
@@ -269,19 +268,19 @@ export default class InjectAdapter implements Adapter<MessageExtra> {
 
 ```typescript
 import browser from 'webextension-polyfill'
-import { Adapter, Message } from 'comctx'
+import { Adapter, Message, SendMessage, OnMessage } from 'comctx'
 
 export interface MessageExtra extends Message {
   url: string
 }
 
 export default class ProvideAdapter implements Adapter<MessageExtra> {
-  async sendMessage(message: MessageExtra) {
+  sendMessage: SendMessage<MessageExtra> = async (message) => {
     const tabs = await browser.tabs.query({ url: message.url })
     tabs.map((tab) => browser.tabs.sendMessage(tab.id!, message))
   }
 
-  onMessage(callback: (message?: MessageExtra) => void) {
+  onMessage: OnMessage<MessageExtra> = (callback) => {
     const handler = (message: any): undefined => {
       callback(message)
     }
@@ -332,13 +331,13 @@ see: [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples
 **InjectAdapter.ts**
 
 ```typescript
-import { Adapter, Message } from 'comctx'
+import { Adapter, SendMessage, OnMessage } from 'comctx'
 
 export default class InjectAdapter implements Adapter {
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     window.postMessage(message, '*')
   }
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent) => callback(event.data)
     window.addEventListener('message', handler)
     return () => window.removeEventListener('message', handler)
@@ -349,13 +348,13 @@ export default class InjectAdapter implements Adapter {
 **ProvideAdapter.ts**
 
 ```typescript
-import { Adapter, Message } from 'comctx'
+import { Adapter, SendMessage, OnMessage } from 'comctx'
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     window.parent.postMessage(message, '*')
   }
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent) => callback(event.data)
     window.parent.addEventListener('message', handler)
     return () => window.parent.removeEventListener('message', handler)

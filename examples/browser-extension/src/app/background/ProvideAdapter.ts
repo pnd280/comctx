@@ -1,17 +1,17 @@
 import { browser } from 'wxt/browser'
-import { Adapter, Message } from 'comctx'
+import { Adapter, Message, SendMessage, OnMessage } from 'comctx'
 
 export interface MessageExtra extends Message {
   url: string
 }
 
 export default class ProvideAdapter implements Adapter<MessageExtra> {
-  async sendMessage(message: MessageExtra) {
+  sendMessage: SendMessage<MessageExtra> = async (message) => {
     const tabs = await browser.tabs.query({ url: message.url })
     tabs.map((tab) => browser.tabs.sendMessage(tab.id!, message))
   }
 
-  onMessage(callback: (message?: MessageExtra) => void) {
+  onMessage: OnMessage<MessageExtra> = (callback) => {
     const handler = (message: any): undefined => {
       callback(message)
     }

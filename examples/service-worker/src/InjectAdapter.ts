@@ -1,5 +1,5 @@
 import { Workbox, WorkboxMessageEvent } from 'workbox-window'
-import { Adapter, Message } from 'comctx'
+import { Adapter, SendMessage, OnMessage } from 'comctx'
 
 export default class InjectAdapter implements Adapter {
   workbox: Workbox
@@ -7,12 +7,11 @@ export default class InjectAdapter implements Adapter {
     this.workbox = new Workbox(path, { type: import.meta.env.MODE === 'production' ? 'classic' : 'module' })
     this.workbox.register()
   }
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     this.workbox.messageSW(message)
   }
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: WorkboxMessageEvent) => callback(event.data)
-
     this.workbox.addEventListener('message', handler)
     return () => this.workbox.removeEventListener('message', handler)
   }

@@ -1,14 +1,14 @@
-import { Adapter, Message } from 'comctx'
+import { Adapter, SendMessage, OnMessage } from 'comctx'
 
 declare const self: ServiceWorkerGlobalScope
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage(message: Message) {
+  sendMessage: SendMessage = (message) => {
     self.clients.matchAll().then((clients) => {
       clients.forEach((client) => client.postMessage(message))
     })
   }
-  onMessage(callback: (message?: Message) => void) {
+  onMessage: OnMessage = (callback) => {
     const handler = (event: ExtendableMessageEvent) => callback(event.data)
     self.addEventListener('message', handler)
     return () => self.removeEventListener('message', handler)
