@@ -3,7 +3,7 @@ import { Adapter, Message } from 'comctx'
 declare const self: ServiceWorkerGlobalScope
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage(message?: Message) {
+  sendMessage(message: Message) {
     self.clients.matchAll().then((clients) => {
       clients.forEach((client) => client.postMessage(message))
     })

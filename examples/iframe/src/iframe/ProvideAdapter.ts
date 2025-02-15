@@ -1,7 +1,7 @@
 import { Adapter, Message } from 'comctx'
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage(message?: Message) {
+  sendMessage(message: Message) {
     window.parent.postMessage(message, '*')
   }
   onMessage(callback: (message?: Message) => void) {
