@@ -212,7 +212,11 @@ const provideProxy = <T extends Record<string, any>>(context: () => T, options: 
 const injectProxy = <T extends Record<string, any>>(context: () => T, options: Required<Options>) => {
   let target: T
   return <M extends Message = Message>(adapter: Adapter<M>) =>
-    (target ??= createInject(options.backup ? context() : ({} as unknown as T), adapter as unknown as Adapter, options))
+    (target ??= createInject(
+      options.backup ? Object.freeze(context()) : ({} as unknown as T),
+      adapter as unknown as Adapter,
+      options
+    ))
 }
 
 /**
