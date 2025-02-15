@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/molvqingtai/comctx/compare/v1.0.4...v1.0.5) (2025-02-15)
+
+
+### Performance Improvements
+
+* verify invalid messages ([9c2e45c](https://github.com/molvqingtai/comctx/commit/9c2e45cb243cd85c0e0d46af45e49e10b877be2a))
+
 ## [1.0.4](https://github.com/molvqingtai/comctx/compare/v1.0.3...v1.0.4) (2025-02-15)
 
 
