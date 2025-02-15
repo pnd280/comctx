@@ -11,47 +11,63 @@ export interface Options {
 }
 
 export interface Message {
-  type?: 'apply' | 'callback' | 'ping' | 'pong'
-  id?: string
-  path?: string[]
-  sender?: 'provide' | 'inject'
+  type: 'apply' | 'callback' | 'ping' | 'pong'
+  id: string
+  path: string[]
+  sender: 'provide' | 'inject'
   callbackIds?: string[]
-  args?: any[]
+  args: any[]
   error?: string
   data?: any
-  namespace?: string
-  timeStamp?: number
+  namespace: string
+  timeStamp: number
 }
 
 export type OffMessage = () => MaybePromise<void>
 
-export type SendMessage<M extends Message = Message> = (message?: M) => MaybePromise<void>
+export type SendMessage<M extends Message = Message> = (message: M) => MaybePromise<void>
 
-export type OnMessage<M extends Message = Message> = (callback: (message?: M) => void) => MaybePromise<OffMessage>
+export type OnMessage<M extends Message = Message> = (
+  callback: (message?: Partial<M>) => void
+) => MaybePromise<OffMessage>
 
 export interface Adapter<M extends Message = Message> {
   sendMessage: SendMessage<M>
   onMessage: OnMessage<M>
 }
 
+const isInvalidMessage = (message?: Partial<Message>) => {
+  return (
+    !message ||
+    !message.type ||
+    !message.id ||
+    !message.path ||
+    !message.sender ||
+    !message.args ||
+    !message.namespace ||
+    !message.timeStamp
+  )
+}
+
 const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
   await new Promise<void>((resolve, reject) => {
     const clearIntervalImmediate = setIntervalImmediate(async () => {
       try {
-        const id = uuid()
+        const messageId = uuid()
         const offMessage = await adapter.onMessage((message) => {
-          if (!message) return
-          if (message.namespace !== options.namespace) return
-          if (message.sender !== 'provide') return
-          if (message.type !== 'pong') return
-          if (message.id !== id) return
+          if (isInvalidMessage(message)) return
+          const _message = message as Message
+          if (_message.namespace !== options.namespace) return
+          if (_message.sender !== 'provide') return
+          if (_message.type !== 'pong') return
+          if (_message.id !== messageId) return
           clearIntervalImmediate()
           offMessage()
           resolve()
         })
         adapter.sendMessage({
           type: 'ping',
-          id,
+          id: messageId,
           path: [],
           sender: 'inject',
           args: [],
@@ -68,14 +84,15 @@ const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
 
 const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapter, options: Required<Options>) => {
   adapter.onMessage(async (message) => {
-    if (!message) return
-    if (message.namespace !== options.namespace) return
-    if (message.sender !== 'inject') return
+    if (isInvalidMessage(message)) return
+    const _message = message as Message
+    if (_message.namespace !== options.namespace) return
+    if (_message.sender !== 'inject') return
 
-    switch (message.type) {
+    switch (message!.type) {
       case 'ping': {
         adapter.sendMessage({
-          ...message,
+          ..._message!,
           type: 'pong',
           sender: 'provide',
           namespace: options.namespace,
@@ -84,32 +101,32 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
         break
       }
       case 'apply': {
-        const mapArgs = message.args?.map((arg) => {
-          if (message.callbackIds?.includes(arg)) {
-            return (...args: any[]) => {
-              adapter.sendMessage({
-                ...message,
-                id: arg,
-                data: args,
-                type: 'callback',
-                sender: 'provide',
-                namespace: options.namespace,
-                timeStamp: Date.now()
-              })
-            }
-          } else {
-            return arg
-          }
-        })
         try {
-          message.data = await (
-            message.path?.reduce((acc, key) => acc[key], target) as unknown as (...args: any[]) => any
+          const mapArgs = _message.args?.map((arg) => {
+            if (_message.callbackIds?.includes(arg)) {
+              return (...args: any[]) => {
+                adapter.sendMessage({
+                  ..._message,
+                  id: arg,
+                  data: args,
+                  type: 'callback',
+                  sender: 'provide',
+                  namespace: options.namespace,
+                  timeStamp: Date.now()
+                })
+              }
+            } else {
+              return arg
+            }
+          })
+          _message.data = await (
+            _message.path?.reduce((acc, key) => acc[key], target) as unknown as (...args: any[]) => any
           ).apply(target, mapArgs ?? [])
         } catch (error) {
-          message.error = (error as Error).message
+          _message.error = (error as Error).message
         }
         adapter.sendMessage({
-          ...message,
+          ..._message,
           type: 'apply',
           sender: 'provide',
           namespace: options.namespace,
@@ -139,12 +156,13 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
                 const callbackId = uuid()
                 callbackIds.push(callbackId)
                 adapter.onMessage((message) => {
-                  if (!message) return
-                  if (message.namespace !== options.namespace) return
-                  if (message.sender !== 'provide') return
-                  if (message.type !== 'callback') return
-                  if (message.id !== callbackId) return
-                  arg(...message.data)
+                  if (isInvalidMessage(message)) return
+                  const _message = message as Message
+                  if (_message.namespace !== options.namespace) return
+                  if (_message.sender !== 'provide') return
+                  if (_message.type !== 'callback') return
+                  if (_message.id !== callbackId) return
+                  arg(..._message.data)
                 })
                 return callbackId
               } else {
@@ -154,12 +172,13 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
 
             const messageId = uuid()
             const offMessage = await adapter.onMessage((message) => {
-              if (!message) return
-              if (message.namespace !== options.namespace) return
-              if (message.sender !== 'provide') return
-              if (message.type !== 'apply') return
-              if (message.id !== messageId) return
-              message.error ? reject(new Error(message.error)) : resolve(message.data)
+              if (isInvalidMessage(message)) return
+              const _message = message as Message
+              if (_message.namespace !== options.namespace) return
+              if (_message.sender !== 'provide') return
+              if (_message.type !== 'apply') return
+              if (_message.id !== messageId) return
+              _message.error ? reject(new Error(_message.error)) : resolve(_message.data)
               offMessage()
             })
 
@@ -203,10 +222,10 @@ const injectProxy = <T extends Record<string, any>>(context: () => T, options: R
  *   - For the provider: This object directly handles remote calls.
  *   - For the injector: When the backup option is enabled, it serves as a local fallback implementation.
  * @param options - Configuration options:
- *   - backup: Whether to use a backup implementation of the original object in the injector (default is false).
+ *   - namespace: The communication namespace used to isolate messages between different proxy instances (default is '__comctx__').
  *   - waitProvide: Whether the injector should wait for the provider to be ready (default is true).
  *   - waitInterval: The polling interval (in milliseconds, default 300) when the injector is waiting for the provider.
- *   - namespace: The communication namespace used to isolate messages between different proxy instances (default is '__comctx__').
+ *   - backup: Whether to use a backup implementation of the original object in the injector (default is false).
  * @returns Returns a tuple containing two elements:
  *   [0] provideProxy: Accepts an adapter and creates a provider proxy.
  *   [1] injectProxy: Accepts an adapter and creates an injector proxy.
@@ -224,7 +243,12 @@ const injectProxy = <T extends Record<string, any>>(context: () => T, options: R
  * await math.add(2, 3) // 5
  */
 export const defineProxy = <T extends Record<string, any>>(context: () => T, options?: Options) => {
-  const mergedOptions = { backup: false, waitProvide: true, waitInterval: 300, namespace: '__comctx__', ...options }
+  const mergedOptions = {
+    namespace: options?.namespace ?? '__comctx__',
+    waitProvide: options?.waitProvide ?? true,
+    waitInterval: options?.waitInterval ?? 300,
+    backup: options?.backup ?? false
+  }
   return [provideProxy(context, mergedOptions), injectProxy(context, mergedOptions)] as const
 }
 

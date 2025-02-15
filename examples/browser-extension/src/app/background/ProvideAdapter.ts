@@ -2,12 +2,12 @@ import { browser } from 'wxt/browser'
 import { Adapter, Message } from 'comctx'
 
 export interface MessageExtra extends Message {
-  url?: string
+  url: string
 }
 
 export default class ProvideAdapter implements Adapter<MessageExtra> {
-  async sendMessage(message?: MessageExtra) {
-    const tabs = await browser.tabs.query({ url: message?.url })
+  async sendMessage(message: MessageExtra) {
+    const tabs = await browser.tabs.query({ url: message.url })
     tabs.map((tab) => browser.tabs.sendMessage(tab.id!, message))
   }
 
