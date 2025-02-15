@@ -1,15 +1,15 @@
 import { browser } from 'wxt/browser'
-import { Adapter, Message } from 'comctx'
+import { Adapter, Message, SendMessage, OnMessage } from 'comctx'
 
 export interface MessageExtra extends Message {
   url: string
 }
 
 export default class InjectAdapter implements Adapter<MessageExtra> {
-  sendMessage(message: Message) {
+  sendMessage: SendMessage<MessageExtra> = (message) => {
     browser.runtime.sendMessage(browser.runtime.id, { ...message, url: document.location.href })
   }
-  onMessage(callback: (message?: MessageExtra) => void) {
+  onMessage: OnMessage<MessageExtra> = (callback) => {
     const handler = (message: any): undefined => {
       callback(message)
     }
