@@ -4,10 +4,10 @@ import setIntervalImmediate from '@/utils/setIntervalImmediate'
 type MaybePromise<T> = T | Promise<T>
 
 export interface Options {
-  backup?: boolean
+  namespace?: string
   waitProvide?: boolean
   waitInterval?: number
-  namespace?: string
+  backup?: boolean
 }
 
 export interface Message {
@@ -142,8 +142,8 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
 const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter, options: Required<Options>) => {
   const createProxy = (target: T, path: string[]) => {
     const proxy = new Proxy<T>(target, {
-      get(target, key: string) {
-        return createProxy(options.backup ? target[key] : ((() => {}) as unknown as T), [...path, key] as string[])
+      get(_target, key: string) {
+        return createProxy((() => {}) as unknown as T, [...path, key] as string[])
       },
       apply(_target, _thisArg, args) {
         return new Promise<Message>(async (resolve, reject) => {
