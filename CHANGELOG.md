@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/molvqingtai/comctx/compare/v1.0.7...v1.0.8) (2025-02-15)
+
+
+### Performance Improvements
+
+* freeze backup object ([cf35c35](https://github.com/molvqingtai/comctx/commit/cf35c35a0c0229109c6cba88153648dbba488d23))
+
 ## [1.0.7](https://github.com/molvqingtai/comctx/compare/v1.0.6...v1.0.7) (2025-02-15)
 
 
