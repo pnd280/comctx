@@ -11,7 +11,7 @@ class Counter {
     setInterval(() => {
       const newValue = this.value
       if (oldValue !== newValue) {
-        callback(this.value)
+        callback(newValue)
         oldValue = newValue
       }
     })
