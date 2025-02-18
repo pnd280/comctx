@@ -38,7 +38,7 @@ class Counter {
     setInterval(() => {
       const newValue = this.value
       if (oldValue !== newValue) {
-        callback(this.value)
+        callback(newValue)
         oldValue = newValue
       }
     })
@@ -229,9 +229,9 @@ counter.onChange((value) => {
 
 await counter.getValue() // 0
 
-await counter.decrement() // 1
+await counter.increment() // 1
 
-await counter.increment() // 0
+await counter.decrement() // 0
 ```
 
 ### Browser Extension
@@ -317,9 +317,9 @@ counter.onChange((value) => {
 
 await counter.getValue() // 0
 
-await counter.decrement() // 1
+await counter.increment() // 1
 
-await counter.increment() // 0
+await counter.decrement() // 0
 ```
 
 ### IFrame
@@ -375,7 +375,7 @@ counter.onChange((value) => {
 })
 ```
 
-**index.ts**
+**main.ts**
 
 ```typescript
 import { injectCounter } from './shared'
@@ -389,9 +389,9 @@ counter.onChange((value) => {
 
 await counter.getValue() // 0
 
-await counter.decrement() // 1
+await counter.increment() // 1
 
-await counter.increment() // 0
+await counter.decrement() // 0
 ```
 
 ## 🩷Thanks
