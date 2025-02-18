@@ -1,3 +1,10 @@
+## [1.0.9](https://github.com/molvqingtai/comctx/compare/v1.0.8...v1.0.9) (2025-02-18)
+
+
+### Performance Improvements
+
+* update examples & readme ([73db12b](https://github.com/molvqingtai/comctx/commit/73db12b2899d35f64153e0b7893cb94d8195a148))
+
 ## [1.0.8](https://github.com/molvqingtai/comctx/compare/v1.0.7...v1.0.8) (2025-02-15)
 
 
