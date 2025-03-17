@@ -19,7 +19,7 @@ $ pnpm install comctx
 - **Bidirectional Communication** - Method calls & callback support
 - **Type Safety** - Full TypeScript integration
 - **Lightweight** - 1KB gzipped core
-- **Fault Tolerance** - Backup implementations & connection health checks
+- **Fault Tolerance** - Backup implementations & connection heartbeat checks
 
 ## 🚀 Quick Start
 
@@ -129,7 +129,7 @@ interface Adapter<M extends Message = Message> {
   sendMessage: (message: M) => MaybePromise<void>
 
   /** Register a message listener */
-  onMessage: (callback: (message?: Partial<M>) => void) => MaybePromise<OffMessage>
+  onMessage: (callback: (message?: Partial<M>) => void) => MaybePromise<OffMessage | void>
 }
 ```
 
@@ -189,7 +189,7 @@ export default class ProvideAdapter implements Adapter {
 }
 ```
 
-**servie-worker.ts**
+**service-worker.ts**
 
 ```typescript
 import { provideCounter } from './shared'

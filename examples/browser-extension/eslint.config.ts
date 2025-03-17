@@ -10,7 +10,7 @@ export default [
   ...tseslint.configs.recommended,
   prettierPlugin,
   {
-    ignores: ['**/dist/*', '**/.output/*']
+    ignores: ['**/dist/*', '**/.output/*', '**/.wxt/*']
   },
   {
     rules: {

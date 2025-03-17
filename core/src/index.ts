@@ -5,8 +5,9 @@ type MaybePromise<T> = T | Promise<T>
 
 export interface Options {
   namespace?: string
-  waitProvide?: boolean
-  waitInterval?: number
+  heartbeatCheck?: boolean
+  heartbeatInterval?: number
+  heartbeatTimeout?: number
   backup?: boolean
 }
 
@@ -29,7 +30,7 @@ export type SendMessage<M extends Message = Message> = (message: M) => MaybeProm
 
 export type OnMessage<M extends Message = Message> = (
   callback: (message?: Partial<M>) => void
-) => MaybePromise<OffMessage>
+) => MaybePromise<OffMessage | void>
 
 export interface Adapter<M extends Message = Message> {
   sendMessage: SendMessage<M>
@@ -49,8 +50,8 @@ const isInvalidMessage = (message?: Partial<Message>) => {
   )
 }
 
-const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
-  await new Promise<void>((resolve, reject) => {
+const heartbeatCheck = async (adapter: Adapter, options: Required<Options>) => {
+  const heartbeatInterval = new Promise<void>((resolve, reject) => {
     const clearIntervalImmediate = setIntervalImmediate(async () => {
       try {
         const messageId = uuid()
@@ -62,7 +63,7 @@ const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
           if (_message.type !== 'pong') return
           if (_message.id !== messageId) return
           clearIntervalImmediate()
-          offMessage()
+          offMessage?.()
           resolve()
         })
         adapter.sendMessage({
@@ -78,8 +79,14 @@ const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
         clearIntervalImmediate()
         reject(error)
       }
-    }, options.waitInterval)
+    }, options.heartbeatInterval)
   })
+
+  const heartbeatTimeout = new Promise<void>((_, reject) => {
+    setTimeout(() => reject(new Error(`Provide unavailable：heartbeat check timeout.`)), options.heartbeatTimeout)
+  })
+
+  await Promise.race([heartbeatInterval, heartbeatTimeout])
 }
 
 const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapter, options: Required<Options>) => {
@@ -89,7 +96,7 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
     if (_message.namespace !== options.namespace) return
     if (_message.sender !== 'inject') return
 
-    switch (message!.type) {
+    switch (_message!.type) {
       case 'ping': {
         adapter.sendMessage({
           ..._message!,
@@ -148,7 +155,7 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
       apply(_target, _thisArg, args) {
         return new Promise<Message>(async (resolve, reject) => {
           try {
-            options.waitProvide && (await waitProvide(adapter, options))
+            options.heartbeatCheck && (await heartbeatCheck(adapter, options))
 
             const callbackIds: string[] = []
             const mapArgs = args.map((arg) => {
@@ -179,7 +186,7 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
               if (_message.type !== 'apply') return
               if (_message.id !== messageId) return
               _message.error ? reject(new Error(_message.error)) : resolve(_message.data)
-              offMessage()
+              offMessage?.()
             })
 
             adapter.sendMessage({
@@ -227,8 +234,9 @@ const injectProxy = <T extends Record<string, any>>(context: () => T, options: R
  *   - For the injector: When the backup option is enabled, it serves as a local fallback implementation.
  * @param options - Configuration options:
  *   - namespace: The communication namespace used to isolate messages between different proxy instances (default is '__comctx__').
- *   - waitProvide: Whether the injector should wait for the provider to be ready (default is true).
- *   - waitInterval: The polling interval (in milliseconds, default 300) when the injector is waiting for the provider.
+ *   - heartbeatCheck: Enable provider readiness check (default: true).
+ *   - heartbeatInterval: The frequency at which to request heartbeats in milliseconds (default: 300).
+ *   - heartbeatTimeout: Max wait time for heartbeat response in milliseconds (default: 1000).
  *   - backup: Whether to use a backup implementation of the original object in the injector (default is false).
  * @returns Returns a tuple containing two elements:
  *   [0] provideProxy: Accepts an adapter and creates a provider proxy.
@@ -240,19 +248,27 @@ const injectProxy = <T extends Record<string, any>>(context: () => T, options: R
  * }), { namespace: 'math' })
  *
  * // Provider
- * provide(webWorkerAdapter)
+ * provide(providerAdapter)
  *
  * // Injector
- * const math = inject(webWorkerAdapter)
+ * const math = inject(injectorAdapter)
  * await math.add(2, 3) // 5
  */
 export const defineProxy = <T extends Record<string, any>>(context: () => T, options?: Options) => {
   const mergedOptions = {
     namespace: options?.namespace ?? '__comctx__',
-    waitProvide: options?.waitProvide ?? true,
-    waitInterval: options?.waitInterval ?? 300,
+    heartbeatCheck: options?.heartbeatCheck ?? true,
+    heartbeatInterval: options?.heartbeatInterval ?? 300,
+    heartbeatTimeout: options?.heartbeatTimeout ?? 1000,
     backup: options?.backup ?? false
   }
+
+  if (mergedOptions.heartbeatTimeout <= mergedOptions.heartbeatInterval) {
+    throw new Error(
+      `Invalid heartbeat config: timeout (${mergedOptions.heartbeatTimeout}ms) must exceed interval (${mergedOptions.heartbeatInterval}ms).`
+    )
+  }
+
   return [provideProxy(context, mergedOptions), injectProxy(context, mergedOptions)] as const
 }
 
