@@ -29,7 +29,7 @@ export type SendMessage<M extends Message = Message> = (message: M) => MaybeProm
 
 export type OnMessage<M extends Message = Message> = (
   callback: (message?: Partial<M>) => void
-) => MaybePromise<OffMessage>
+) => MaybePromise<OffMessage | void>
 
 export interface Adapter<M extends Message = Message> {
   sendMessage: SendMessage<M>
@@ -62,7 +62,7 @@ const waitProvide = async (adapter: Adapter, options: Required<Options>) => {
           if (_message.type !== 'pong') return
           if (_message.id !== messageId) return
           clearIntervalImmediate()
-          offMessage()
+          offMessage?.()
           resolve()
         })
         adapter.sendMessage({
@@ -89,7 +89,7 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
     if (_message.namespace !== options.namespace) return
     if (_message.sender !== 'inject') return
 
-    switch (message!.type) {
+    switch (_message!.type) {
       case 'ping': {
         adapter.sendMessage({
           ..._message!,
@@ -179,7 +179,7 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
               if (_message.type !== 'apply') return
               if (_message.id !== messageId) return
               _message.error ? reject(new Error(_message.error)) : resolve(_message.data)
-              offMessage()
+              offMessage?.()
             })
 
             adapter.sendMessage({
