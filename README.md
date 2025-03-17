@@ -129,7 +129,7 @@ interface Adapter<M extends Message = Message> {
   sendMessage: (message: M) => MaybePromise<void>
 
   /** Register a message listener */
-  onMessage: (callback: (message?: Partial<M>) => void) => MaybePromise<OffMessage>
+  onMessage: (callback: (message?: Partial<M>) => void) => MaybePromise<OffMessage | void>
 }
 ```
 
@@ -189,7 +189,7 @@ export default class ProvideAdapter implements Adapter {
 }
 ```
 
-**servie-worker.ts**
+**service-worker.ts**
 
 ```typescript
 import { provideCounter } from './shared'
