@@ -19,7 +19,7 @@ $ pnpm install comctx
 - **Bidirectional Communication** - Method calls & callback support
 - **Type Safety** - Full TypeScript integration
 - **Lightweight** - 1KB gzipped core
-- **Fault Tolerance** - Backup implementations & connection health checks
+- **Fault Tolerance** - Backup implementations & connection heartbeat checks
 
 ## 🚀 Quick Start
 
