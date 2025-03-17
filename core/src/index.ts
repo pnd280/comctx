@@ -83,7 +83,7 @@ const heartbeatCheck = async (adapter: Adapter, options: Required<Options>) => {
   })
 
   const heartbeatTimeout = new Promise<void>((_, reject) => {
-    setTimeout(() => reject(new Error(`Provide unavailable：heartbeat check timeout.`)), options.heartbeatTimeout)
+    setTimeout(() => reject(new Error(`Provider unavailable: heartbeat check timeout.`)), options.heartbeatTimeout)
   })
 
   await Promise.race([heartbeatInterval, heartbeatTimeout])
