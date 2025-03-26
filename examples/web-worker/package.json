@@ -1,7 +1,7 @@
 {
-  "name": "iframe-example",
+  "name": "web-worker-example",
   "version": "1.0.0",
-  "description": "This is an example of communication between the main page and an iframe.",
+  "description": "This is an example of communication between the main page and an web-worker.",
   "type": "module",
   "scripts": {
     "dev": "vite",

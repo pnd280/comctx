@@ -239,8 +239,8 @@ const injectProxy = <T extends Record<string, any>>(context: () => T, options: R
  *   - heartbeatTimeout: Max wait time for heartbeat response in milliseconds (default: 1000).
  *   - backup: Whether to use a backup implementation of the original object in the injector (default is false).
  * @returns Returns a tuple containing two elements:
- *   [0] provideProxy: Accepts an adapter and creates a provider proxy.
- *   [1] injectProxy: Accepts an adapter and creates an injector proxy.
+ *   - [0] provideProxy: Accepts an adapter and creates a provider proxy.
+ *   - [1] injectProxy: Accepts an adapter and creates an injector proxy.
  *
  * @example
  * const [provide, inject] = defineProxy(() => ({

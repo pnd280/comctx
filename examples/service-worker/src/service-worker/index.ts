@@ -1,4 +1,4 @@
-import { provideCounter } from './shared'
+import { provideCounter } from '../shared'
 import ProvideAdapter from './ProvideAdapter'
 
 declare const self: ServiceWorkerGlobalScope
