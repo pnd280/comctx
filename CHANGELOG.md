@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/molvqingtai/comctx/compare/v1.1.1...v1.1.2) (2025-03-26)
+
+
+### Bug Fixes
+
+* timer not released after timeout ([328affc](https://github.com/molvqingtai/comctx/commit/328affc712a580d203f93a71011ba757c46db73e))
+
 ## [1.1.1](https://github.com/molvqingtai/comctx/compare/v1.1.0...v1.1.1) (2025-03-26)
 
 
