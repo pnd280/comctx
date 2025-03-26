@@ -81,7 +81,7 @@ const originCounter = provideCounter(new ProvideAdapter())
 originCounter.onChange(console.log)
 ```
 
-**Consumer (Service Consumer)**
+**Injector (Service Injector)**
 
 ```typescript
 // inject end, typically for the main page, content-script, etc.
@@ -135,9 +135,88 @@ interface Adapter<M extends Message = Message> {
 
 ## 📖Examples
 
+- [web-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/web-worker)
 - [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
 - [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
 - [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
+
+### Web Worker
+
+This is an example of communication between the main page and an web-worker.
+
+see: [web-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/web-worker)
+
+**InjectAdpter.ts**
+
+```typescript
+import { Adapter, SendMessage, OnMessage, Message } from 'comctx'
+
+export default class InjectAdapter implements Adapter {
+  worker: Worker
+  constructor(path: string | URL) {
+    this.worker = new Worker(path, { type: 'module' })
+  }
+  sendMessage: SendMessage = (message) => {
+    this.worker.postMessage(message)
+  }
+  onMessage: OnMessage = (callback) => {
+    const handler = (event: MessageEvent<Message>) => callback(event.data)
+    this.worker.addEventListener('message', handler)
+    return () => this.worker.removeEventListener('message', handler)
+  }
+}
+```
+
+**ProvideAdpter.ts**
+
+```typescript
+import { Adapter, SendMessage, OnMessage, Message } from 'comctx'
+
+declare const self: DedicatedWorkerGlobalScope
+
+export default class ProvideAdapter implements Adapter {
+  sendMessage: SendMessage = (message) => {
+    self.postMessage(message)
+  }
+  onMessage: OnMessage = (callback) => {
+    const handler = (event: MessageEvent<Message>) => callback(event.data)
+    self.addEventListener('message', handler)
+    return () => self.removeEventListener('message', handler)
+  }
+}
+```
+
+**web-worker.ts**
+
+```typescript
+import { provideCounter } from '../shared'
+import ProvideAdapter from './ProvideAdapter'
+
+const counter = provideCounter(new ProvideAdapter())
+
+counter.onChange((value) => {
+  console.log('WebWorker Value:', value)
+})
+```
+
+**main.ts**
+
+```typescript
+import { injectCounter } from './shared'
+import InjectAdapter from './InjectAdapter'
+
+const counter = injectCounter(new InjectAdapter(new URL('./web-worker.ts', import.meta.url)))
+
+counter.onChange((value) => {
+  console.log('WebWorker Value:', value) // 1,0
+})
+
+await counter.getValue() // 0
+
+await counter.increment() // 1
+
+await counter.decrement() // 0
+```
 
 ### Service Worker
 

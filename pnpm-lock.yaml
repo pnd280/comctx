@@ -53,7 +53,7 @@ importers:
         version: 5.2.3(eslint-config-prettier@10.1.1(eslint@9.22.0(jiti@2.4.2)))(eslint@9.22.0(jiti@2.4.2))(prettier@3.5.3)
       globals:
         specifier: ^15.14.0
-        version: 16.0.0
+        version: 15.15.0
       happy-dom:
         specifier: ^17.0.4
         version: 17.4.4
@@ -83,10 +83,7 @@ importers:
         version: 5.2.3(eslint-config-prettier@10.1.1(eslint@9.22.0(jiti@2.4.2)))(eslint@9.22.0(jiti@2.4.2))(prettier@3.5.3)
       globals:
         specifier: ^15.14.0
-        version: 16.0.0
-      jiti:
-        specifier: ^2.4.2
-        version: 2.4.2
+        version: 15.15.0
       tsup:
         specifier: ^8.3.6
         version: 8.4.0(jiti@2.4.2)(postcss@8.5.3)(typescript@5.8.2)(yaml@2.7.0)
@@ -111,7 +108,7 @@ importers:
         version: 9.22.0
       '@types/chrome':
         specifier: ^0.0.280
-        version: 0.0.309
+        version: 0.0.280
       eslint:
         specifier: ^9.20.0
         version: 9.22.0(jiti@2.4.2)
@@ -123,10 +120,7 @@ importers:
         version: 5.2.3(eslint-config-prettier@10.1.1(eslint@9.22.0(jiti@2.4.2)))(eslint@9.22.0(jiti@2.4.2))(prettier@3.5.3)
       globals:
         specifier: ^15.14.0
-        version: 16.0.0
-      jiti:
-        specifier: ^2.4.2
-        version: 2.4.2
+        version: 15.15.0
       typescript:
         specifier: ^5.7.3
         version: 5.8.2
@@ -157,10 +151,7 @@ importers:
         version: 5.2.3(eslint-config-prettier@10.1.1(eslint@9.22.0(jiti@2.4.2)))(eslint@9.22.0(jiti@2.4.2))(prettier@3.5.3)
       globals:
         specifier: ^15.14.0
-        version: 16.0.0
-      jiti:
-        specifier: ^2.4.2
-        version: 2.4.2
+        version: 15.15.0
       typescript:
         specifier: ^5.7.3
         version: 5.8.2
@@ -194,10 +185,7 @@ importers:
         version: 5.2.3(eslint-config-prettier@10.1.1(eslint@9.22.0(jiti@2.4.2)))(eslint@9.22.0(jiti@2.4.2))(prettier@3.5.3)
       globals:
         specifier: ^15.14.0
-        version: 16.0.0
-      jiti:
-        specifier: ^2.4.2
-        version: 2.4.2
+        version: 15.15.0
       typescript:
         specifier: ^5.7.3
         version: 5.8.2
@@ -210,6 +198,37 @@ importers:
       vite-plugin-pwa:
         specifier: ^0.21.1
         version: 0.21.1(vite@6.2.2(@types/node@22.13.10)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(workbox-build@7.3.0)(workbox-window@7.3.0)
+
+  examples/web-worker:
+    dependencies:
+      comctx:
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.20.0
+        version: 9.22.0
+      eslint:
+        specifier: ^9.20.0
+        version: 9.22.0(jiti@2.4.2)
+      eslint-config-prettier:
+        specifier: ^10.0.1
+        version: 10.1.1(eslint@9.22.0(jiti@2.4.2))
+      eslint-plugin-prettier:
+        specifier: ^5.2.3
+        version: 5.2.3(eslint-config-prettier@10.1.1(eslint@9.22.0(jiti@2.4.2)))(eslint@9.22.0(jiti@2.4.2))(prettier@3.5.3)
+      globals:
+        specifier: ^15.14.0
+        version: 15.15.0
+      typescript:
+        specifier: ^5.7.3
+        version: 5.8.2
+      typescript-eslint:
+        specifier: ^8.24.0
+        version: 8.26.1(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2)
+      vite:
+        specifier: ^6.1.0
+        version: 6.2.2(@types/node@22.13.10)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0)
 
 packages:
 
@@ -1807,9 +1826,6 @@ packages:
   '@types/chrome@0.0.280':
     resolution: {integrity: sha512-AotSmZrL9bcZDDmSI1D9dE7PGbhOur5L0cKxXd7IqbVizQWCY4gcvupPUVsQ4FfDj3V2tt/iOpomT9EY0s+w1g==}
 
-  '@types/chrome@0.0.309':
-    resolution: {integrity: sha512-ZFADzcp8b+roUrux68U8pti4cmNOLJXWkShk8lfxj9SBcjYqpJt7NypBprSJUJDJVakGZgd2Tt00QePIGh7oPA==}
-
   '@types/conventional-commits-parser@5.0.1':
     resolution: {integrity: sha512-7uz5EHdzz2TqoMfV7ee61Egf5y6NkcO4FB/1iCCQnbeiI1F3xzv3vK5dBCXUCLQgGYS+mUeigK1iKQzvED+QnQ==}
 
@@ -3107,8 +3123,8 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
-  globals@16.0.0:
-    resolution: {integrity: sha512-iInW14XItCXET01CQFqudPOWP2jYMl7T+QRQT+UNcR/iQncN/F0UNpgd76iFkBPgNQb4+X3LV9tLJYzwh+Gl3A==}
+  globals@15.15.0:
+    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
     engines: {node: '>=18'}
 
   globalthis@1.0.4:
@@ -7368,11 +7384,6 @@ snapshots:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
 
-  '@types/chrome@0.0.309':
-    dependencies:
-      '@types/filesystem': 0.0.36
-      '@types/har-format': 1.2.16
-
   '@types/conventional-commits-parser@5.0.1':
     dependencies:
       '@types/node': 22.13.10
@@ -8906,7 +8917,7 @@ snapshots:
 
   globals@14.0.0: {}
 
-  globals@16.0.0: {}
+  globals@15.15.0: {}
 
   globalthis@1.0.4:
     dependencies:
@@ -11148,7 +11159,7 @@ snapshots:
       debug: 4.4.0
       es-module-lexer: 1.6.0
       pathe: 2.0.3
-      vite: 6.1.0(@types/node@22.13.10)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0)
+      vite: 6.2.2(@types/node@22.13.10)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
