@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/molvqingtai/comctx/compare/v1.0.9...v1.1.0) (2025-03-17)
+
+
+### Features
+
+* support heartbeatTimeout ([5affa38](https://github.com/molvqingtai/comctx/commit/5affa385782ab99dbf38d377311a3da80a294890))
+
+
+### Performance Improvements
+
+* offMessage is not required ([025376d](https://github.com/molvqingtai/comctx/commit/025376d0972a9e027505f9fa17f47a59f5b0c907))
+
 ## [1.0.9](https://github.com/molvqingtai/comctx/compare/v1.0.8...v1.0.9) (2025-02-18)
 
 
