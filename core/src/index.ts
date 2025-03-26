@@ -51,8 +51,10 @@ const isInvalidMessage = (message?: Partial<Message>) => {
 }
 
 const heartbeatCheck = async (adapter: Adapter, options: Required<Options>) => {
+  let clearIntervalImmediate: (() => void) | undefined
+
   const heartbeatInterval = new Promise<void>((resolve, reject) => {
-    const clearIntervalImmediate = setIntervalImmediate(async () => {
+    clearIntervalImmediate = setIntervalImmediate(async () => {
       try {
         const messageId = uuid()
         const offMessage = await adapter.onMessage((message) => {
@@ -62,7 +64,7 @@ const heartbeatCheck = async (adapter: Adapter, options: Required<Options>) => {
           if (_message.sender !== 'provide') return
           if (_message.type !== 'pong') return
           if (_message.id !== messageId) return
-          clearIntervalImmediate()
+          clearIntervalImmediate?.()
           offMessage?.()
           resolve()
         })
@@ -76,17 +78,20 @@ const heartbeatCheck = async (adapter: Adapter, options: Required<Options>) => {
           timeStamp: Date.now()
         })
       } catch (error) {
-        clearIntervalImmediate()
+        clearIntervalImmediate?.()
         reject(error)
       }
     }, options.heartbeatInterval)
   })
 
   const heartbeatTimeout = new Promise<void>((_, reject) => {
-    setTimeout(() => reject(new Error(`Provider unavailable: heartbeat check timeout.`)), options.heartbeatTimeout)
+    setTimeout(
+      () => reject(new Error(`Provider unavailable: heartbeat check timeout ${options.heartbeatTimeout}ms.`)),
+      options.heartbeatTimeout
+    )
   })
 
-  await Promise.race([heartbeatInterval, heartbeatTimeout])
+  await Promise.race([heartbeatInterval, heartbeatTimeout]).finally(() => clearIntervalImmediate?.())
 }
 
 const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapter, options: Required<Options>) => {
