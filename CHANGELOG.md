@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/molvqingtai/comctx/compare/v1.1.0...v1.1.1) (2025-03-26)
+
+
+### Performance Improvements
+
+* add web-worker example ([adfe758](https://github.com/molvqingtai/comctx/commit/adfe7580aed8e32b3c40410976377f0755f218de))
+
 # [1.1.0](https://github.com/molvqingtai/comctx/compare/v1.0.9...v1.1.0) (2025-03-17)
 
 
