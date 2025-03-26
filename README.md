@@ -59,7 +59,7 @@ export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), 
 **Provider (Service Provider)**
 
 ```typescript
-// provide end, typically for service-workers, background, etc.
+// provide end, typically for web-workers, background, etc.
 import type { Adapter, SendMessage, OnMessage } from 'comctx'
 import { provideCounter } from './shared'
 
@@ -189,7 +189,7 @@ export default class ProvideAdapter implements Adapter {
 **web-worker.ts**
 
 ```typescript
-import { provideCounter } from '../shared'
+import { provideCounter } from './shared'
 import ProvideAdapter from './ProvideAdapter'
 
 const counter = provideCounter(new ProvideAdapter())
