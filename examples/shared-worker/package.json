@@ -1,0 +1,29 @@
+{
+  "name": "shared-worker-example",
+  "version": "1.0.0",
+  "description": "This is an example of communication between the main page and an web-worker.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint --fix --cache",
+    "check": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "comctx": "workspace:*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "globals": "^15.14.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "typescript-eslint": "^8.24.0"
+  }
+}

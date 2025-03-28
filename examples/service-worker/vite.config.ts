@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     VitePWA({
-      srcDir: 'src/service-worker',
+      srcDir: 'src/worker',
       filename: 'index.ts',
       strategies: 'injectManifest',
       injectRegister: false,
