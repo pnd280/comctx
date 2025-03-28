@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/molvqingtai/comctx/compare/v1.1.2...v1.1.3) (2025-03-28)
+
+
+### Performance Improvements
+
+* add shared-worker example ([6cd3599](https://github.com/molvqingtai/comctx/commit/6cd359938d4f1dcc457f459b80e96b2422490012))
+
 ## [1.1.2](https://github.com/molvqingtai/comctx/compare/v1.1.1...v1.1.2) (2025-03-26)
 
 
