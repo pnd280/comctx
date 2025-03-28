@@ -136,6 +136,7 @@ interface Adapter<M extends Message = Message> {
 ## 📖Examples
 
 - [web-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/web-worker)
+- [shared-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/shared-worker)
 - [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
 - [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
 - [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
@@ -209,101 +210,6 @@ const counter = injectCounter(new InjectAdapter(new URL('./web-worker.ts', impor
 
 counter.onChange((value) => {
   console.log('WebWorker Value:', value) // 1,0
-})
-
-await counter.getValue() // 0
-
-await counter.increment() // 1
-
-await counter.decrement() // 0
-```
-
-### Service Worker
-
-This is an example of communication between the main page and an service-worker.
-
-see: [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
-
-**InjectAdpter.ts**
-
-```typescript
-import { Workbox, WorkboxMessageEvent } from 'workbox-window'
-import { Adapter, SendMessage, OnMessage } from 'comctx'
-
-export default class InjectAdapter implements Adapter {
-  workbox: Workbox
-  constructor(path: string) {
-    this.workbox = new Workbox(path, { type: import.meta.env.MODE === 'production' ? 'classic' : 'module' })
-    this.workbox.register()
-  }
-  sendMessage: SendMessage = (message) => {
-    this.workbox.messageSW(message)
-  }
-  onMessage: OnMessage = (callback) => {
-    const handler = (event: WorkboxMessageEvent) => callback(event.data)
-    this.workbox.addEventListener('message', handler)
-    return () => this.workbox.removeEventListener('message', handler)
-  }
-}
-```
-
-**ProvideAdpter.ts**
-
-```typescript
-import { Adapter, SendMessage, OnMessage } from 'comctx'
-
-declare const self: ServiceWorkerGlobalScope
-
-export default class ProvideAdapter implements Adapter {
-  sendMessage: SendMessage = (message) => {
-    self.clients.matchAll().then((clients) => {
-      clients.forEach((client) => client.postMessage(message))
-    })
-  }
-  onMessage: OnMessage = (callback) => {
-    const handler = (event: ExtendableMessageEvent) => callback(event.data)
-    self.addEventListener('message', handler)
-    return () => self.removeEventListener('message', handler)
-  }
-}
-```
-
-**service-worker.ts**
-
-```typescript
-import { provideCounter } from './shared'
-import ProvideAdapter from './ProvideAdapter'
-
-declare const self: ServiceWorkerGlobalScope
-
-self.addEventListener('install', () => {
-  console.log('ServiceWorker installed')
-  self.skipWaiting()
-})
-self.addEventListener('activate', (event) => {
-  console.log('ServiceWorker activated')
-  event.waitUntil(self.clients.claim())
-})
-
-const counter = provideCounter(new ProvideAdapter())
-
-counter.onChange((value) => {
-  console.log('ServiceWorker Value:', value) // 1,0
-})
-```
-
-**main.ts**
-
-```typescript
-import { injectCounter } from './shared'
-import InjectAdapter from './InjectAdapter'
-
-const counter = injectCounter(
-  new InjectAdapter(import.meta.env.MODE === 'production' ? '/service-worker.js' : '/dev-sw.js?dev-sw')
-)
-
-counter.onChange((value) => {
-  console.log('ServiceWorker Value:', value) // 1,0
 })
 
 await counter.getValue() // 0

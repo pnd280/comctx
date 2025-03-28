@@ -23,7 +23,7 @@ void (async () => {
           <button id="increment" type="button">+</button>
         </div>
         <div class="card">
-          <h4 id="worker-value">WebWorker Value: ${initValue} </h4>
+          <h4 id="worker-value">SharedWorker Value: ${initValue} </h4>
         </div>
       </div>
     `)
@@ -39,6 +39,6 @@ void (async () => {
 
   counter.onChange((value) => {
     document.querySelector<HTMLDivElement>('#value')!.textContent = value.toString()
-    document.querySelector<HTMLDivElement>('#worker-value')!.textContent = `WebWorker Value: ${value}`
+    document.querySelector<HTMLDivElement>('#worker-value')!.textContent = `SharedWorker Value: ${value}`
   })
 })().catch(console.error)
