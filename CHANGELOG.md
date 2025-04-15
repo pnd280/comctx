@@ -1,3 +1,10 @@
+## [1.1.5](https://github.com/molvqingtai/comctx/compare/v1.1.4...v1.1.5) (2025-04-15)
+
+
+### Performance Improvements
+
+* support env arg ([43e16c5](https://github.com/molvqingtai/comctx/commit/43e16c5fdafe9390b01dd886be2f452abc1bd045))
+
 ## [1.1.4](https://github.com/molvqingtai/comctx/compare/v1.1.3...v1.1.4) (2025-04-01)
 
 
