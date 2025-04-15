@@ -3,6 +3,8 @@ import setIntervalImmediate from '@/utils/setIntervalImmediate'
 
 type MaybePromise<T> = T | Promise<T>
 
+export type Context<T extends Record<string, any> = Record<string, any>> = (...args: any[]) => T
+
 export interface Options {
   namespace?: string
   heartbeatCheck?: boolean
@@ -36,8 +38,6 @@ export interface Adapter<M extends Message = Message> {
   sendMessage: SendMessage<M>
   onMessage: OnMessage<M>
 }
-
-export type Context<T> = (env: 'inject' | 'provide') => T
 
 const isInvalidMessage = (message?: Partial<Message>) => {
   return (
@@ -225,18 +225,18 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
   return createProxy(source, [])
 }
 
-const provideProxy = <T extends Record<string, any>>(context: Context<T>, options: Required<Options>) => {
-  let target: T
-  return <M extends Message = Message>(adapter: Adapter<M>) =>
-    (target ??= createProvide(context('provide'), adapter as unknown as Adapter, options))
+const provideProxy = <T extends Context>(context: T, options: Required<Options>) => {
+  let target: ReturnType<T>
+  return <M extends Message = Message>(adapter: Adapter<M>, ...args: Parameters<T>) =>
+    (target ??= createProvide(context(...args) as ReturnType<T>, adapter as Adapter, options))
 }
 
-const injectProxy = <T extends Record<string, any>>(context: Context<T>, options: Required<Options>) => {
-  let target: T
+const injectProxy = <T extends Context>(context: T, options: Required<Options>) => {
+  let target: ReturnType<T>
   return <M extends Message = Message>(adapter: Adapter<M>) =>
-    (target ??= createInject(
-      options.backup ? Object.freeze(context('inject')) : ({} as unknown as T),
-      adapter as unknown as Adapter,
+    (target ??= createInject<ReturnType<T>>(
+      (options.backup ? Object.freeze(context()) : {}) as ReturnType<T>,
+      adapter as Adapter,
       options
     ))
 }
@@ -269,7 +269,7 @@ const injectProxy = <T extends Record<string, any>>(context: Context<T>, options
  * const math = inject(injectorAdapter)
  * await math.add(2, 3) // 5
  */
-export const defineProxy = <T extends Record<string, any>>(context: Context<T>, options?: Options) => {
+export const defineProxy = <T extends Context>(context: T, options?: Options) => {
   const mergedOptions = {
     namespace: options?.namespace ?? '__comctx__',
     heartbeatCheck: options?.heartbeatCheck ?? true,
