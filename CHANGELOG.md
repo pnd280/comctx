@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/molvqingtai/comctx/compare/v1.1.5...v1.2.0) (2025-04-15)
+
+
+### Features
+
+* delete env arg & support provide args ([a832596](https://github.com/molvqingtai/comctx/commit/a832596be6dd9ab65b75dfe729a200e7b0d6b702))
+
 ## [1.1.5](https://github.com/molvqingtai/comctx/compare/v1.1.4...v1.1.5) (2025-04-15)
 
 
