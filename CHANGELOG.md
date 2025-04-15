@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/molvqingtai/comctx/compare/v1.1.3...v1.1.4) (2025-04-01)
+
+
+### Performance Improvements
+
+* release all listeners after timeout ([ea79c8d](https://github.com/molvqingtai/comctx/commit/ea79c8dc21e242bfbf584a24ed559774f2a95a92))
+
 ## [1.1.3](https://github.com/molvqingtai/comctx/compare/v1.1.2...v1.1.3) (2025-03-28)
 
 
