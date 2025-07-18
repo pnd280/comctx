@@ -157,7 +157,7 @@ interface Counter {
   increment(): Promise<number>
 }
 
-// Create an empty proxy target
+// Since inject side is a virtual proxy that doesn't actually run, we can pass an empty object
 const counter = {} as Counter
 export const [, injectCounter] = defineProxy(() => counter, {
   namespace: '__comctx-example__'
