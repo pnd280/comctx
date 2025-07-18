@@ -10,24 +10,21 @@
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
-    "compile": "tsc --noEmit",
     "postinstall": "wxt prepare",
     "lint": "eslint --fix --cache",
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@webext-core/messaging": "^2.2.0",
     "comctx": "workspace:*"
   },
   "devDependencies": {
-    "@eslint/js": "^9.20.0",
-    "@types/chrome": "^0.0.280",
-    "eslint": "^9.20.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.3",
-    "globals": "^15.14.0",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.24.0",
-    "wxt": "^0.19.26"
+    "@eslint/js": "^9.31.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "globals": "^16.3.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.37.0",
+    "wxt": "^0.20.7"
   }
 }

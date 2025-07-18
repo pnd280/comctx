@@ -1,7 +1,7 @@
-import { defineContentScript } from 'wxt/sandbox'
+import { defineContentScript } from '#imports'
 
 import { injectCounter } from '@/shared'
-import { createShadowRootUi } from 'wxt/client'
+import { createShadowRootUi } from '#imports'
 import { name, description } from '@/../package.json'
 import createElement from '@/utils/createElement'
 

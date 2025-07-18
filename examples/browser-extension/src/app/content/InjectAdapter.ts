@@ -1,4 +1,4 @@
-import { browser } from 'wxt/browser'
+import { browser } from '#imports'
 import { Adapter, Message, SendMessage, OnMessage } from 'comctx'
 
 export interface MessageExtra extends Message {
