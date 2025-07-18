@@ -1,5 +1,5 @@
 import { defineProxy } from 'comctx'
-import { browser } from 'wxt/browser'
+import { browser } from '#imports'
 
 // Proxy object that will run in the background script
 class Counter {

@@ -29,7 +29,10 @@ $ pnpm install comctx
 import { defineProxy } from 'comctx'
 
 class Counter {
-  public value = 0
+  public value: number
+  constructor(initialValue: number = 0) {
+    this.value = initialValue
+  }
   async getValue() {
     return this.value
   }
@@ -51,7 +54,7 @@ class Counter {
   }
 }
 
-export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
+export const [provideCounter, injectCounter] = defineProxy((initialValue: number = 0) => new Counter(initialValue), {
   namespace: '__comctx-example__'
 })
 ```
@@ -76,7 +79,7 @@ export default class ProvideAdapter implements Adapter {
   }
 }
 
-const originCounter = provideCounter(new ProvideAdapter())
+const originCounter = provideCounter(new ProvideAdapter(), 10)
 
 originCounter.onChange(console.log)
 ```
@@ -118,6 +121,54 @@ const count = await proxyCounter.getValue()
 - Since `inject` is a virtual proxy, to support operations like `Reflect.has(proxyCounter, 'value')`, you can set `backup` to `true`, which will create a static copy on the inject side that doesn't actually run but serves as a template.
 
 - `provideCounter` and `injectCounter` require user-defined adapters for different environments that implement `onMessage` and `sendMessage` methods.
+
+## 🧩 Advanced Usage
+
+### Separate Inject and Provide Definitions
+
+For multi-package architectures, you can define inject and provide proxies separately to avoid bundling shared code in both packages. 
+
+By default, both provider and injector would bundle the same implementation code, but the injector only needs it for type safety:
+
+```typescript
+// packages/provider/src/index.ts
+import { defineProxy } from 'comctx'
+
+class Counter {
+  public value = 0
+  async increment() {
+    return ++this.value
+  }
+}
+
+const counter = new Counter()
+export const [provideCounter] = defineProxy(() => new Counter(), {
+  namespace: '__comctx-example__'
+})
+```
+
+```typescript
+// packages/injector/src/index.ts
+import { defineProxy } from 'comctx'
+
+// Define type-only counter for type safety
+interface Counter {
+  value: number
+  increment(): Promise<number>
+}
+
+// Create an empty proxy target
+const counter = {} as Counter
+export const [, injectCounter] = defineProxy(() => counter, {
+  namespace: '__comctx-example__'
+})
+```
+
+This pattern allows you to:
+- Keep provider and injector code completely separate
+- Avoid bundling unnecessary implementation code in the injector
+- Maintain full type safety by passing an empty object with type annotation
+- Deploy packages independently
 
 ## 🔌 Adapter Interface
 
