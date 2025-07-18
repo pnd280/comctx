@@ -126,7 +126,7 @@ const count = await proxyCounter.getValue()
 
 ### Separate Inject and Provide Definitions
 
-For multi-package architectures, you can define inject and provide proxies separately to avoid bundling shared code in both packages. 
+For multi-package architectures, you can define inject and provide proxies separately to avoid bundling shared code in both packages.
 
 By default, both provider and injector would bundle the same implementation code, but the injector only needs it for type safety:
 
@@ -142,7 +142,7 @@ class Counter {
 }
 
 const counter = new Counter()
-export const [provideCounter] = defineProxy(() => new Counter(), {
+export const [provideCounter] = defineProxy(() => counter, {
   namespace: '__comctx-example__'
 })
 ```
@@ -165,6 +165,7 @@ export const [, injectCounter] = defineProxy(() => counter, {
 ```
 
 This pattern allows you to:
+
 - Keep provider and injector code completely separate
 - Avoid bundling unnecessary implementation code in the injector
 - Maintain full type safety by passing an empty object with type annotation
