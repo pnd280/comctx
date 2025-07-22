@@ -164,12 +164,33 @@ export const [, injectCounter] = defineProxy(() => counter, {
 })
 ```
 
-This pattern allows you to:
+### Transferable Objects Support
 
-- Keep provider and injector code completely separate
-- Avoid bundling unnecessary implementation code in the injector
-- Maintain full type safety by passing an empty object with type annotation
-- Deploy packages independently
+Comctx naturally supports [Transferable Objects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects) since it doesn't perform any internal serialization. Arguments are passed directly to the underlying message transport, allowing ArrayBuffer, Stream, and other transferable objects to be efficiently transferred:
+
+```typescript
+class FileProcessor {
+  async processBuffer(buffer: ArrayBuffer, callback: (result: string) => void) {
+    // Process the transferred buffer
+    const result = new TextDecoder().decode(buffer)
+    callback(`Processed: ${result}`)
+    return buffer.byteLength
+  }
+}
+
+export const [provideProcessor, injectProcessor] = defineProxy(() => new FileProcessor(), {
+  namespace: '__file-processor__'
+})
+
+// Usage
+const processor = injectProcessor(adapter)
+const buffer = new ArrayBuffer(1024)
+
+// The ArrayBuffer will be transferred (not copied) if supported by the platform
+const size = await processor.processBuffer(buffer, (result) => {
+  console.log(result)
+})
+```
 
 ## 🔌 Adapter Interface
 
