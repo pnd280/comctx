@@ -1,0 +1,26 @@
+{
+  "name": "worker-transfer-example",
+  "version": "1.0.0",
+  "description": "Web Worker Transfer Objects Example - Automatic transferable objects handling",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint --fix --cache",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "comctx": "workspace:*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "globals": "^16.3.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.37.0",
+    "vite": "^7.0.5"
+  }
+}
