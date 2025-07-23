@@ -185,7 +185,7 @@ class Counter {
 }
 
 export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
-  namespace: '__example__',
+  namespace: '__worker-transfer-example__',
   transfer: true // Automatically extract and transfer transferable objects
 })
 
