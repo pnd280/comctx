@@ -15,8 +15,8 @@ $ pnpm install comctx
 ## 💡Features
 
 - **Environment Agnostic** - Works across Web Workers, Browser Extensions, iframes, Electron, and more
-- **Transferable Objects** - Automatic extraction and zero-copy transfer of transferable objects
 - **Bidirectional Communication** - Method calls & callback support
+- **Zero Copy** - Automatic extraction and zero-copy transfer of transferable objects
 - **Type Safety** - Full TypeScript integration
 - **Lightweight** - 1KB gzipped core
 - **Fault Tolerance** - Backup implementations & connection heartbeat checks
@@ -62,7 +62,7 @@ export const [provideCounter, injectCounter] = defineProxy((initialValue: number
 **Provider (Service Provider)**
 
 ```typescript
-// provide end, typically for web-workers, background, etc.
+// Provider side, typically for web-workers, background, etc.
 import type { Adapter, SendMessage, OnMessage } from 'comctx'
 import { provideCounter } from './shared'
 
@@ -87,7 +87,7 @@ originCounter.onChange(console.log)
 **Injector (Service Injector)**
 
 ```typescript
-// inject end, typically for the main page, content-script, etc.
+// Injector side, typically for the main page, content-script, etc.
 import type { Adapter, SendMessage, OnMessage } from 'comctx'
 import { injectCounter } from './shared'
 
@@ -114,11 +114,11 @@ await proxyCounter.increment()
 const count = await proxyCounter.getValue()
 ```
 
-- `originCounter` and `proxyCounter` will share the same `Counter`. `proxyCounter` is a virtual proxy, and accessing `proxyCounter` will forward requests to the `Counter` on the provide side, whereas `originCounter` directly refers to the `Counter` itself.
+- `originCounter` and `proxyCounter` share the same `Counter` instance. `proxyCounter` is a virtual proxy that forwards requests to the `Counter` on the provider side, while `originCounter` directly references the `Counter` itself.
 
-- The inject side cannot directly use `get` and `set`; it must interact with `Counter` via asynchronous methods, but it supports callbacks.
+- The injector side cannot directly use `get` and `set`; it must interact with `Counter` via asynchronous methods, but callbacks are supported.
 
-- Since `inject` is a virtual proxy, to support operations like `Reflect.has(proxyCounter, 'value')`, you can set `backup` to `true`, which will create a static copy on the inject side that doesn't actually run but serves as a template.
+- Since the injector is a virtual proxy, to support operations like `Reflect.has(proxyCounter, 'value')`, you can set `backup` to `true`, which creates a static copy on the injector side that serves as a template without actually running.
 
 - `provideCounter` and `injectCounter` require user-defined adapters for different environments that implement `onMessage` and `sendMessage` methods.
 
@@ -157,7 +157,7 @@ interface Counter {
   increment(): Promise<number>
 }
 
-// Since inject side is a virtual proxy that doesn't actually run, we can pass an empty object
+// Since the injector side is a virtual proxy that doesn't actually run, we can pass an empty object
 const counter = {} as Counter
 export const [, injectCounter] = defineProxy(() => counter, {
   namespace: '__comctx-example__'
@@ -168,14 +168,14 @@ export const [, injectCounter] = defineProxy(() => counter, {
 
 Comctx supports zero-copy transfer as an optimization over the default structured cloning:
 
-**Zero-Copy (`transfer: true`)**: Uses [Transferable Objects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects) for zero-copy transfer
+**Zero-Copy (`transfer: true`)**: Uses [Transferable Objects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects)
 
 ```typescript
 class Counter {
   public value = new ArrayBuffer(4)
 
   async transfer() {
-    return value // Zero-copy transfer, this.value becomes detached
+    return this.value // Zero-copy transfer, this.value becomes detached
   }
 
   async increment() {
@@ -191,18 +191,14 @@ export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), 
 
 // Usage - receive transferred ArrayBuffer
 const counter = injectCounter(adapter)
-const value = await counter.transfer() // Return: zero-copy ArrayBuffer
+const value = await counter.transfer() // ✅ Return: zero-copy ArrayBuffer
+new Int32Array(value)[0]++ // ✅ Modify transferred ArrayBuffer directly
 
-await counter.transfer() // DataCloneError: Failed to execute 'postMessage' on 'DedicatedWorkerGlobalScope': ArrayBuffer at index 0 is already detached.
-await counter.increment() // Error: Cannot perform Construct on a detached ArrayBuffer
-
-new Int32Array(value)[0]++ // Modify transferred ArrayBuffer directly
+await counter.increment() // ❌ Error: Cannot perform Construct on a detached ArrayBuffer
+await counter.transfer() // ❌ Error: Failed to execute 'postMessage' on 'DedicatedWorkerGlobalScope': ArrayBuffer at index 0 is already detached.
 ```
 
-**Key Differences**:
-
-- Locked streams are automatically filtered out to prevent `DataCloneError`
-- For transfer-enabled adapters, implement `SendMessage` with the transfer parameter:
+When transfer is enabled, transferable objects are automatically extracted from messages and passed as the transfer parameter to `SendMessage`:
 
 ```typescript
 // Transfer-enabled adapter
@@ -239,11 +235,11 @@ interface Adapter<M extends Message = Message> {
 
 ### Web Worker
 
-This is an example of communication between the main page and an web-worker.
+This is an example of communication between the main page and a web worker.
 
 see: [web-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/web-worker)
 
-**InjectAdpter.ts**
+**InjectAdapter.ts**
 
 ```typescript
 import { Adapter, SendMessage, OnMessage, Message } from 'comctx'
@@ -253,8 +249,8 @@ export default class InjectAdapter implements Adapter {
   constructor(path: string | URL) {
     this.worker = new Worker(path, { type: 'module' })
   }
-  sendMessage: SendMessage = (message, transfer) => {
-    this.worker.postMessage(message, transfer)
+  sendMessage: SendMessage = (message) => {
+    this.worker.postMessage(message)
   }
   onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent<Message>) => callback(event.data)
@@ -264,7 +260,7 @@ export default class InjectAdapter implements Adapter {
 }
 ```
 
-**ProvideAdpter.ts**
+**ProvideAdapter.ts**
 
 ```typescript
 import { Adapter, SendMessage, OnMessage, Message } from 'comctx'
@@ -272,8 +268,8 @@ import { Adapter, SendMessage, OnMessage, Message } from 'comctx'
 declare const self: DedicatedWorkerGlobalScope
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage: SendMessage = (message, transfer) => {
-    self.postMessage(message, transfer)
+  sendMessage: SendMessage = (message) => {
+    self.postMessage(message)
   }
   onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent<Message>) => callback(event.data)
@@ -317,11 +313,11 @@ await counter.decrement() // 0
 
 ### Browser Extension
 
-This is an example of communication between the content-script page and an background.
+This is an example of communication between the content-script and background script.
 
 see: [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
 
-**InjectAdpter.ts**
+**InjectAdapter.ts**
 
 ```typescript
 import browser from 'webextension-polyfill'
