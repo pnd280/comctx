@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/molvqingtai/comctx/compare/v1.2.0...v1.3.0) (2025-07-23)
+
+
+### Features
+
+* support transfer of transferable objects ([a42c31f](https://github.com/molvqingtai/comctx/commit/a42c31f36ee8f66bc62661047730304a4801e073))
+
 # [1.2.0](https://github.com/molvqingtai/comctx/compare/v1.1.5...v1.2.0) (2025-04-15)
 
 
