@@ -1,5 +1,6 @@
 import uuid from '@/utils/uuid'
 import setIntervalImmediate from '@/utils/setIntervalImmediate'
+import extractMessage from '@/utils/extractMessage'
 
 type MaybePromise<T> = T | Promise<T>
 
@@ -10,6 +11,7 @@ export interface Options {
   heartbeatCheck?: boolean
   heartbeatInterval?: number
   heartbeatTimeout?: number
+  transfer?: boolean
   backup?: boolean
 }
 
@@ -28,7 +30,7 @@ export interface Message {
 
 export type OffMessage = () => MaybePromise<void>
 
-export type SendMessage<M extends Message = Message> = (message: M) => MaybePromise<void>
+export type SendMessage<M extends Message = Message> = (message: M, transfer: Transferable[]) => MaybePromise<void>
 
 export type OnMessage<M extends Message = Message> = (
   callback: (message?: Partial<M>) => void
@@ -73,7 +75,7 @@ const heartbeatCheck = async (adapter: Adapter, options: Required<Options>) => {
 
         offMessage && offMessages.add(offMessage)
 
-        adapter.sendMessage({
+        const pingMessage: Message = {
           type: 'ping',
           id: messageId,
           path: [],
@@ -81,7 +83,13 @@ const heartbeatCheck = async (adapter: Adapter, options: Required<Options>) => {
           args: [],
           namespace: options.namespace,
           timeStamp: Date.now()
-        })
+        }
+        if (options.transfer) {
+          const { message, transfer } = extractMessage(pingMessage)
+          adapter.sendMessage(message, transfer)
+        } else {
+          adapter.sendMessage(pingMessage, [])
+        }
       } catch (error) {
         reject(error)
       }
@@ -113,13 +121,19 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
 
     switch (_message!.type) {
       case 'ping': {
-        adapter.sendMessage({
+        const pongMessage: Message = {
           ..._message!,
           type: 'pong',
           sender: 'provide',
           namespace: options.namespace,
           timeStamp: Date.now()
-        })
+        }
+        if (options.transfer) {
+          const { message, transfer } = extractMessage(pongMessage)
+          adapter.sendMessage(message, transfer)
+        } else {
+          adapter.sendMessage(pongMessage, [])
+        }
         break
       }
       case 'apply': {
@@ -127,7 +141,7 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
           const mapArgs = _message.args?.map((arg) => {
             if (_message.callbackIds?.includes(arg)) {
               return (...args: any[]) => {
-                adapter.sendMessage({
+                const callbackMessage: Message = {
                   ..._message,
                   id: arg,
                   data: args,
@@ -135,7 +149,13 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
                   sender: 'provide',
                   namespace: options.namespace,
                   timeStamp: Date.now()
-                })
+                }
+                if (options.transfer) {
+                  const { message, transfer } = extractMessage(callbackMessage)
+                  adapter.sendMessage(message, transfer)
+                } else {
+                  adapter.sendMessage(callbackMessage, [])
+                }
               }
             } else {
               return arg
@@ -147,13 +167,19 @@ const createProvide = <T extends Record<string, any>>(target: T, adapter: Adapte
         } catch (error) {
           _message.error = (error as Error).message
         }
-        adapter.sendMessage({
+        const responseMessage: Message = {
           ..._message,
           type: 'apply',
           sender: 'provide',
           namespace: options.namespace,
           timeStamp: Date.now()
-        })
+        }
+        if (options.transfer) {
+          const { message, transfer } = extractMessage(responseMessage)
+          adapter.sendMessage(message, transfer)
+        } else {
+          adapter.sendMessage(responseMessage, [])
+        }
         break
       }
     }
@@ -204,7 +230,7 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
               offMessage?.()
             })
 
-            adapter.sendMessage({
+            const applyMessage: Message = {
               type: 'apply',
               id: messageId,
               path,
@@ -213,7 +239,13 @@ const createInject = <T extends Record<string, any>>(source: T, adapter: Adapter
               args: mapArgs,
               timeStamp: Date.now(),
               namespace: options.namespace
-            })
+            }
+            if (options.transfer) {
+              const { message, transfer } = extractMessage(applyMessage)
+              adapter.sendMessage(message, transfer)
+            } else {
+              adapter.sendMessage(applyMessage, [])
+            }
           } catch (error) {
             reject(error)
           }
@@ -252,6 +284,7 @@ const injectProxy = <T extends Context>(context: T, options: Required<Options>) 
  *   - heartbeatCheck: Enable provider readiness check (default: true).
  *   - heartbeatInterval: The frequency at which to request heartbeats in milliseconds (default: 300).
  *   - heartbeatTimeout: Max wait time for heartbeat response in milliseconds (default: 1000).
+ *   - transfer: Whether to use transferable objects for message transfer (default is false).
  *   - backup: Whether to use a backup implementation of the original object in the injector (default is false).
  * @returns Returns a tuple containing two elements:
  *   - [0] provideProxy: Accepts an adapter and creates a provider proxy.
@@ -275,6 +308,7 @@ export const defineProxy = <T extends Context>(context: T, options?: Options) =>
     heartbeatCheck: options?.heartbeatCheck ?? true,
     heartbeatInterval: options?.heartbeatInterval ?? 300,
     heartbeatTimeout: options?.heartbeatTimeout ?? 1000,
+    transfer: options?.transfer ?? false,
     backup: options?.backup ?? false
   }
 

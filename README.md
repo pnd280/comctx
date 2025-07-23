@@ -15,7 +15,7 @@ $ pnpm install comctx
 ## 💡Features
 
 - **Environment Agnostic** - Works across Web Workers, Browser Extensions, iframes, Electron, and more
-
+- **Transferable Objects** - Automatic extraction and zero-copy transfer of transferable objects
 - **Bidirectional Communication** - Method calls & callback support
 - **Type Safety** - Full TypeScript integration
 - **Lightweight** - 1KB gzipped core
@@ -164,32 +164,54 @@ export const [, injectCounter] = defineProxy(() => counter, {
 })
 ```
 
-### Transferable Objects Support
+### Zero-Copy Transfer
 
-Comctx naturally supports [Transferable Objects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects) since it doesn't perform any internal serialization. Arguments are passed directly to the underlying message transport, allowing ArrayBuffer, Stream, and other transferable objects to be efficiently transferred:
+Comctx supports zero-copy transfer as an optimization over the default structured cloning:
+
+**Zero-Copy (`transfer: true`)**: Uses [Transferable Objects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects) for zero-copy transfer
 
 ```typescript
-class FileProcessor {
-  async processBuffer(buffer: ArrayBuffer, callback: (result: string) => void) {
-    // Process the transferred buffer
-    const result = new TextDecoder().decode(buffer)
-    callback(`Processed: ${result}`)
-    return buffer.byteLength
+class Counter {
+  public value = new ArrayBuffer(4)
+
+  async transfer() {
+    return value // Zero-copy transfer, this.value becomes detached
+  }
+
+  async increment() {
+    // Error: Cannot access this.value after transfer (detached ArrayBuffer)
+    new Int32Array(this.value)[0]++
   }
 }
 
-export const [provideProcessor, injectProcessor] = defineProxy(() => new FileProcessor(), {
-  namespace: '__file-processor__'
+export const [provideCounter, injectCounter] = defineProxy(() => new Counter(), {
+  namespace: '__example__',
+  transfer: true // Automatically extract and transfer transferable objects
 })
 
-// Usage
-const processor = injectProcessor(adapter)
-const buffer = new ArrayBuffer(1024)
+// Usage - receive transferred ArrayBuffer
+const counter = injectCounter(adapter)
+const value = await counter.transfer() // Return: zero-copy ArrayBuffer
 
-// The ArrayBuffer will be transferred (not copied) if supported by the platform
-const size = await processor.processBuffer(buffer, (result) => {
-  console.log(result)
-})
+await counter.transfer() // DataCloneError: Failed to execute 'postMessage' on 'DedicatedWorkerGlobalScope': ArrayBuffer at index 0 is already detached.
+await counter.increment() // Error: Cannot perform Construct on a detached ArrayBuffer
+
+new Int32Array(value)[0]++ // Modify transferred ArrayBuffer directly
+```
+
+**Key Differences**:
+
+- Locked streams are automatically filtered out to prevent `DataCloneError`
+- For transfer-enabled adapters, implement `SendMessage` with the transfer parameter:
+
+```typescript
+// Transfer-enabled adapter
+export default class TransferAdapter implements Adapter {
+  sendMessage: SendMessage = (message, transfer) => {
+    this.worker.postMessage(message, transfer)
+  }
+  // ... rest of implementation
+}
 ```
 
 ## 🔌 Adapter Interface
@@ -199,7 +221,7 @@ To adapt to different communication channels, implement the following interface:
 ```typescript
 interface Adapter<M extends Message = Message> {
   /** Send a message to the other side */
-  sendMessage: (message: M) => MaybePromise<void>
+  sendMessage: (message: M, transfer: Transferable[]) => MaybePromise<void>
 
   /** Register a message listener */
   onMessage: (callback: (message?: Partial<M>) => void) => MaybePromise<OffMessage | void>
@@ -211,6 +233,7 @@ interface Adapter<M extends Message = Message> {
 - [web-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/web-worker)
 - [shared-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/shared-worker)
 - [service-worker-example](https://github.com/molvqingtai/comctx/tree/master/examples/service-worker)
+- [worker-transfer-example](https://github.com/molvqingtai/comctx/tree/master/examples/worker-transfer)
 - [browser-extension-example](https://github.com/molvqingtai/comctx/tree/master/examples/browser-extension)
 - [iframe-example](https://github.com/molvqingtai/comctx/tree/master/examples/iframe)
 
@@ -230,8 +253,8 @@ export default class InjectAdapter implements Adapter {
   constructor(path: string | URL) {
     this.worker = new Worker(path, { type: 'module' })
   }
-  sendMessage: SendMessage = (message) => {
-    this.worker.postMessage(message)
+  sendMessage: SendMessage = (message, transfer) => {
+    this.worker.postMessage(message, transfer)
   }
   onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent<Message>) => callback(event.data)
@@ -249,8 +272,8 @@ import { Adapter, SendMessage, OnMessage, Message } from 'comctx'
 declare const self: DedicatedWorkerGlobalScope
 
 export default class ProvideAdapter implements Adapter {
-  sendMessage: SendMessage = (message) => {
-    self.postMessage(message)
+  sendMessage: SendMessage = (message, transfer) => {
+    self.postMessage(message, transfer)
   }
   onMessage: OnMessage = (callback) => {
     const handler = (event: MessageEvent<Message>) => callback(event.data)
