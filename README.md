@@ -164,11 +164,11 @@ export const [, injectCounter] = defineProxy(() => counter, {
 })
 ```
 
-### Zero-Copy Transfer
+### Transfer and Transferable Objects
 
-Comctx supports zero-copy transfer as an optimization over the default structured cloning:
+By default, every method parameter, return value and object property value is copied ([structured cloning](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm)). Comctx performs no internal serialization and natively supports [transferable objects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects).
 
-**Zero-Copy (`transfer: true`)**: Uses [Transferable Objects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects)
+If you want a value to be transferred rather than copied — provided the value is or contains a [Transferable](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects#supported_objects) — you can enable the `transfer` option. When enabled, transferable objects are automatically extracted and transferred using zero-copy semantics:
 
 ```typescript
 class Counter {
@@ -197,6 +197,8 @@ new Int32Array(value)[0]++ // ✅ Modify transferred ArrayBuffer directly
 await counter.increment() // ❌ Error: Cannot perform Construct on a detached ArrayBuffer
 await counter.transfer() // ❌ Error: Failed to execute 'postMessage' on 'DedicatedWorkerGlobalScope': ArrayBuffer at index 0 is already detached.
 ```
+
+#### Adapter Implementation
 
 When transfer is enabled, transferable objects are automatically extracted from messages and passed as the transfer parameter to `SendMessage`:
 
