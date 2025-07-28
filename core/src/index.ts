@@ -1,6 +1,6 @@
 import uuid from '@/utils/uuid'
 import setIntervalImmediate from '@/utils/setIntervalImmediate'
-import extractMessage from '@/utils/extractMessage'
+import extractMessage from './extractMessage'
 
 type MaybePromise<T> = T | Promise<T>
 

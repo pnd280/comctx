@@ -473,6 +473,11 @@ await counter.increment() // 1
 await counter.decrement() // 0
 ```
 
+## 📖 Articles
+
+- [Comctx: A Better Cross-Context Communication Library Than Comlink (English)](./docs/ARTICLE-en.md)
+- [Comctx：比 Comlink 更好的跨上下文通信库 (中文)](./docs/ARTICLE-zh.md)
+
 ## 🩷Thanks
 
 The inspiration for this project comes from [@webext-core/proxy-service](https://webext-core.aklinker1.io/proxy-service/installation/), but [Comctx](https://github.com/molvqingtai/comctx) aims to be a better version of it.
