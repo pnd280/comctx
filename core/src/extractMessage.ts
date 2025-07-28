@@ -1,4 +1,4 @@
-import isInstanceOf from './isInstanceOf'
+import isInstanceOf from '@/utils/isInstanceOf'
 
 // Helper function to extract clean message and transferable objects
 const extractMessage = <T>(originalMessage: T): { message: T; transfer: Transferable[] } => {
