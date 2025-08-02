@@ -117,7 +117,7 @@ const result = await payment.processPayment(100, cardInfo)
 
 #### 4. Electron 进程间通信
 
-```
+```TypeScript
 // 文件操作服务（在主进程中提供文件系统访问）
 class FileService {
   async readFile(path) {
