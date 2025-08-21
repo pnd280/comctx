@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "comctx": "workspace:*",
-    "opfs-tools": "^0.7.2"
+    "opfs-tools": "^0.7.2",
+    "webext-bridge": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",

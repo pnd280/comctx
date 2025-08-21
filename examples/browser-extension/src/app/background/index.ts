@@ -1,7 +1,8 @@
 import { provideCounter } from '@/shared'
 import { browser, defineBackground } from '#imports'
 
-import ProvideAdapter from './ProvideAdapter'
+// import ProvideAdapter from './ProvideAdapter'
+import ProvideAdapter from './_ProvideAdapter'
 
 export default defineBackground({
   type: 'module',

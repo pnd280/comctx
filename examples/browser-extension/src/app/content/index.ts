@@ -5,7 +5,8 @@ import { createShadowRootUi } from '#imports'
 import { name, description } from '@/../package.json'
 import createElement from '@/utils/createElement'
 
-import InjectAdapter from './InjectAdapter'
+// import InjectAdapter from './InjectAdapter'
+import InjectAdapter from './_InjectAdapter'
 
 import './style.css'
 

@@ -1,5 +1,10 @@
 packages:
-  - 'core'
-  - '__tests__'
-  - '__tests__/fixtures/*'
-  - 'examples/*'
+  - core
+  - __tests__
+  - __tests__/fixtures/*
+  - examples/*
+
+onlyBuiltDependencies:
+  - esbuild
+  - msw
+  - spawn-sync
